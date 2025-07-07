@@ -9,6 +9,7 @@ import nltk
 from nltk.corpus import stopwords
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
+import os
 
 # --- Configurações da página ---
 st.set_page_config(
