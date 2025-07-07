@@ -116,11 +116,11 @@ if len(situacao_selecionada) > 0:
 
 # Métricas Principais
 total_reclamacoes = df_filtrado.shape[0]
-resolvido = df_filtrado[df_filtrado['Situação'] == 'Resolvida'].shape[0]
-nao_resolvido = df_filtrado[df_filtrado['Situação'] == 'Não Resolvida'].shape[0]
-em_replica = df_filtrado[df_filtrado['Situação'] == 'Réplica'].shape[0]
+resolvido = df_filtrado[df_filtrado['Situação'] == 'Resolvido'].shape[0]
+nao_resolvido = df_filtrado[df_filtrado['Situação'] == 'Não resolvido'].shape[0]
+em_replica = df_filtrado[df_filtrado['Situação'] == 'Em réplica'].shape[0]
 respondida = df_filtrado[df_filtrado['Situação'] == 'Respondida'].shape[0]
-nao_respondida = df_filtrado[df_filtrado['Situação'] == 'Não Respondida'].shape[0]
+nao_respondida = df_filtrado[df_filtrado['Situação'] == 'Não respondida'].shape[0]
 
 # --- Gráficos temporais por reclamações ---
 st.subheader(f"🔢 Reclamações por situação")
