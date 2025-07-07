@@ -156,6 +156,7 @@ with col5:
 
 with col6:
     total_reclamacoes = df_filtrado['STATUS'].count()
+    container.badge("Total", icon="📊", color="gray")
     if pd.isna(total_reclamacoes) or total_reclamacoes is None:
         total_reclamacoes = 0 # Define como 0 se for NaN ou None
     container.metric("", int(total_reclamacoes)) # Linha 153
@@ -340,7 +341,7 @@ novas_stopwords = ["empresa", "comprei", "loja", "não", "pra", "tive", "minha",
                    , "voltar", "fazer", "Além", "fazendo", "favor", "deram", "chegou", "chegar", "ir", "vir", "iria", "quero"
                    , "queria", "querer", "ser", "caso", "casa", "informar", "informou", "informe", "ano", "reais", "pagar"
                    , "sendo", "nota", "falta", "faltar", "data", "novamente", "poder", "poderia", "pessoa", "absurdo"
-                   , "momento", "Editado", "Editar", "hora", "falar"]
+                   , "momento", "Editado", "Editar", "hora", "falar", "pq"]
 
 for palavra in novas_stopwords:
     stopwords_portugues.append(palavra)
@@ -400,8 +401,9 @@ if estado != 'Todos':
     df_mapa = df_mapa[df_mapa['NOME_UF'] == estado]
     gdf_municipios = gdf_municipios[gdf_municipios["NM_UF"] == estado]
 
+    gdf_municipios_proj = gdf_municipios.to_crs(epsg=3857)
     # Centralizar o mapa na área de interesse
-    mapa = folium.Map(location=[gdf_municipios.geometry.centroid.y.mean(), gdf_municipios.geometry.centroid.x.mean()], zoom_start=6.3)
+    mapa = folium.Map(location=[gdf_municipios_proj.geometry.centroid.y.mean(), gdf_municipios_proj.geometry.centroid.x.mean()], zoom_start=6.3)
 
     # Agrupando informações dos estados
     df_mapa = df_mapa.groupby(['MUNICIPIO']).size().reset_index(name='Qtd_Reclamacoes')
