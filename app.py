@@ -45,23 +45,19 @@ def load_series_temporais(path):
         return pd.DataFrame() # Retorna um DataFrame vazio
 
 # Forma para subir informações dos municipios
-GOOGLE_DRIVE_FILE_ID = "1a7lmiRSSzkiqgWV4lHnfXkivIK4iMUys"
-LOCAL_FILE_PATH = "datasets/gdf_municipios.csv" # Salve na pasta local do seu app
+GEODATA_URL = 'https://drive.google.com/uc?id=1a7lmiRSSzkiqgWV4lHnfXkivIK4iMUys' 
 
 @st.cache_data
-def load_data_from_drive():
-    try:
-        # Cria o diretório se não existir
-        os.makedirs(os.path.dirname(LOCAL_FILE_PATH), exist_ok=True)
-        # Baixa o arquivo
-        gdown.download(f'https://drive.google.com/uc?id={GOOGLE_DRIVE_FILE_ID}', LOCAL_FILE_PATH, quiet=False)
-        df = pd.read_csv(LOCAL_FILE_PATH)
-        df['coords'] = gpd.GeoSeries.from_wkt(df['POLYGON'])
-        gdf = gpd.GeoDataFrame(df, geometry='coords', crs="EPSG:4326")
-        return gdf
-    except Exception as e:
-        st.error(f"Erro ao carregar dados do Google Drive: {e}")
-        return None
+def load_geodata(url):
+    """
+    Função para carregar os dados geográficos dos municípios.
+    O cache evita o download repetido do arquivo de 434MB.
+    """
+    output = 'gdf_municipios.csv'
+    gdown.download(url, output, quiet=False)
+    gdf = gpd.read_file(output)
+    return gdf
+
 
 # --- Carregamento dos dados ---
 # gdf_estados = load_localidade_geodf("..\datasets\gdf_estados.csv")
@@ -71,15 +67,12 @@ def load_data_from_drive():
 # Alterado para rodar no stramlit Deploy
 gdf_estados = load_localidade_geodf("./datasets/gdf_estados.csv")
 df_reclamacoes = load_series_temporais('./datasets/RECLAMEAQUI_CARREFUOR_CLS.csv')
-gdf_municipios = load_data_from_drive()
+gdf_municipios = load_geodata(GEODATA_URL)
 
 
-# --- Título do Dashboard ---
-st.title("🛍️ Dashboard de Reclamações Carrefour")
-st.subheader("Análise de Reclamações por Localidade")
-st.markdown("""
-Esta é uma análise interativa das reclamações recebidas pelo Carrefour, permitindo filtrar por localidade e período.
-""")
+# --- Título do Dashboard ----
+st.title("✅ Dashboard de Análise de Reclamações")
+st.markdown("---")
 
 # --- Sidebar com seletores ---
 st.sidebar.title("Filtros 🔍")
@@ -120,6 +113,15 @@ if estado != 'Todos':
 if len(situacao_selecionada) > 0:
     df_filtrado = df_filtrado[df_filtrado['STATUS'].isin(situacao_selecionada)]
 
+
+# Métricas Principais
+total_reclamacoes = df_filtrado.shape[0]
+resolvido = df_filtrado[df_filtrado['Situação'] == 'Resolvida'].shape[0]
+nao_resolvido = df_filtrado[df_filtrado['Situação'] == 'Não Resolvida'].shape[0]
+em_replica = df_filtrado[df_filtrado['Situação'] == 'Réplica'].shape[0]
+respondida = df_filtrado[df_filtrado['Situação'] == 'Respondida'].shape[0]
+nao_respondida = df_filtrado[df_filtrado['Situação'] == 'Não Respondida'].shape[0]
+
 # --- Gráficos temporais por reclamações ---
 st.subheader(f"🔢 Reclamações por situação")
 col1, col2, col3, col4, col5, col6 = st.columns(6)
@@ -127,36 +129,36 @@ col1, col2, col3, col4, col5, col6 = st.columns(6)
 with col1:
     container = st.container(border=True)
     container.badge("Resolvido", icon="✅", color="green")
-    resolvido = df_filtrado['STATUS'].value_counts().get('Resolvido', 0)
+    # resolvido = df_filtrado['STATUS'].value_counts().get('Resolvido', 0)
     container.metric("", int(resolvido))
 
 with col2:
     container = st.container(border=True)
     container.badge("Respondida", icon="📑", color="blue")
-    respondida = df_filtrado['STATUS'].value_counts().get('Respondida', 0)
+    # respondida = df_filtrado['STATUS'].value_counts().get('Respondida', 0)
     container.metric("", int(respondida))
 
 with col3:
     container = st.container(border=True)
     container.badge("Em réplica", icon="🗯️", color="violet")
-    em_replica = df_filtrado['STATUS'].value_counts().get('Em réplica', 0)
+    # em_replica = df_filtrado['STATUS'].value_counts().get('Em réplica', 0)
     container.metric("", int(em_replica))
 
 with col4:
     container = st.container(border=True)
     container.badge("Não Respondida", icon="‼️", color="orange")
-    nao_respondida = df_filtrado['STATUS'].value_counts().get('Não respondida', 0)
+    # nao_respondida = df_filtrado['STATUS'].value_counts().get('Não respondida', 0)
     container.metric("", int(nao_respondida))
 
 with col5:
     container = st.container(border=True)
     container.badge("Não Resolvido", icon="❌", color="red")
-    nao_resolvido = df_filtrado['STATUS'].value_counts().get('Não resolvido', 0)
+    # nao_resolvido = df_filtrado['STATUS'].value_counts().get('Não resolvido', 0)
     container.metric("", int(nao_resolvido))
 
 with col6:
     container = st.container(border=True)
-    total_reclamacoes = df_filtrado['STATUS'].count()
+    # total_reclamacoes = df_filtrado['STATUS'].count()
     container.badge("Total", icon="📊", color="gray")
     if pd.isna(total_reclamacoes) or total_reclamacoes is None:
         total_reclamacoes = 0 # Define como 0 se for NaN ou None
