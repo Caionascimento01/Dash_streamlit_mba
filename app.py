@@ -155,6 +155,7 @@ with col5:
     container.metric("", int(nao_resolvido))
 
 with col6:
+    container = st.container(border=True)
     total_reclamacoes = df_filtrado['STATUS'].count()
     container.badge("Total", icon="📊", color="gray")
     if pd.isna(total_reclamacoes) or total_reclamacoes is None:
