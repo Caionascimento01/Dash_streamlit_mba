@@ -32,9 +32,17 @@ def load_localidade_geodf(path):
 # --- Função para carregar séries temporais ---
 @st.cache_data
 def load_series_temporais(path):
-    df = pd.read_csv(path, sep=',', index_col=0, parse_dates=True)
-    df["TEMPO"] = pd.to_datetime(df['TEMPO'], format='%d-%m-%Y', errors='coerce')
-    return df
+    try:
+        df = pd.read_csv(path, sep=',', index_col=0, parse_dates=True)
+        # Otimização: especifique o formato para pd.to_datetime
+        df["TEMPO"] = pd.to_datetime(df['TEMPO'], format='%d-%m-%Y', errors='coerce')
+        return df
+    except FileNotFoundError:
+        st.error(f"Erro: O arquivo de reclamações não foi encontrado em {path}.")
+        return pd.DataFrame() # Retorna um DataFrame vazio para evitar erros posteriores
+    except Exception as e:
+        st.error(f"Erro ao carregar ou processar o arquivo de reclamações: {e}")
+        return pd.DataFrame() # Retorna um DataFrame vazio
 
 # Forma para subir informações dos municipios
 GOOGLE_DRIVE_FILE_ID = "1a7lmiRSSzkiqgWV4lHnfXkivIK4iMUys"
@@ -147,10 +155,10 @@ with col5:
     container.metric("", int(nao_resolvido))
 
 with col6:
-    container = st.container(border=True)
-    container.badge("Total", icon="📊", color="gray")
     total_reclamacoes = df_filtrado['STATUS'].count()
-    container.metric("", int(total_reclamacoes))
+    if pd.isna(total_reclamacoes) or total_reclamacoes is None:
+        total_reclamacoes = 0 # Define como 0 se for NaN ou None
+    container.metric("", int(total_reclamacoes)) # Linha 153
 
 # --- Gráfico de Linha Interativo ---
 # Agrupar por DATA e STATUS, contando quantas reclamações existem
