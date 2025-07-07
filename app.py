@@ -34,6 +34,19 @@ def load_series_temporais(path):
     df["TEMPO"] = pd.to_datetime(df['TEMPO'], format='%d-%m-%Y', errors='coerce')
     return df
 
+# arquivo com as informações dos municipios (423MB)
+CSV_URL = "https://drive.google.com/file/d/1a7lmiRSSzkiqgWV4lHnfXkivIK4iMUys/view?usp=sharing"
+
+@st.cache_data
+def load_data_from_url():
+    try:
+        df = pd.read_csv(CSV_URL)
+        st.success("Dados carregados da URL!")
+        return df
+    except Exception as e:
+        st.error(f"Erro ao carregar dados da URL: {e}")
+        return None
+
 # --- Carregamento dos dados ---
 # gdf_estados = load_localidade_geodf("..\datasets\gdf_estados.csv")
 # gdf_municipios = load_localidade_geodf("..\datasets\gdf_municipios.csv")
@@ -41,7 +54,8 @@ def load_series_temporais(path):
 
 # Alterado para rodar no stramlit Deploy
 gdf_estados = load_localidade_geodf("./datasets/gdf_estados.csv")
-gdf_municipios = load_localidade_geodf("./datasets/gdf_municipios.csv")
+# gdf_municipios = load_localidade_geodf("./datasets/gdf_municipios.csv")
+gdf_municipios = load_data_from_url()
 df_reclamacoes = load_series_temporais('./datasets/RECLAMEAQUI_CARREFUOR_CLS.csv')
 
 
