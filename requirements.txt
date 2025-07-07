@@ -1,12 +1,11 @@
 matplotlib
-seaborn
 plotly
-dash
 streamlit
 geopandas
 pandas
-Polygon
-ast
 folium
-folium_static
-plotly.express
+streamlit-folium # Correção: 'streamlit_folium' para o pacote
+nltk
+wordcloud
+shapely # Adicionado para 'shapely.geometry.Polygon'
+gdown

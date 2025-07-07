@@ -34,17 +34,22 @@ def load_series_temporais(path):
     df["TEMPO"] = pd.to_datetime(df['TEMPO'], format='%d-%m-%Y', errors='coerce')
     return df
 
-# arquivo com as informações dos municipios (423MB)
-CSV_URL = "https://drive.google.com/file/d/1a7lmiRSSzkiqgWV4lHnfXkivIK4iMUys/view?usp=sharing"
+# Forma para subir informações dos municipios
+GOOGLE_DRIVE_FILE_ID = "1a7lmiRSSzkiqgWV4lHnfXkivIK4iMUys"
+LOCAL_FILE_PATH = "datasets/gdf_municipios.csv" # Salve na pasta local do seu app
 
 @st.cache_data
-def load_data_from_url():
+def load_data_from_drive():
     try:
-        df = pd.read_csv(CSV_URL)
-        st.success("Dados carregados da URL!")
+        # Cria o diretório se não existir
+        os.makedirs(os.path.dirname(LOCAL_FILE_PATH), exist_ok=True)
+        # Baixa o arquivo
+        gdown.download(f'https://drive.google.com/uc?id={GOOGLE_DRIVE_FILE_ID}', LOCAL_FILE_PATH, quiet=False)
+        df = pd.read_csv(LOCAL_FILE_PATH)
+        st.success("Dados carregados do Google Drive!")
         return df
     except Exception as e:
-        st.error(f"Erro ao carregar dados da URL: {e}")
+        st.error(f"Erro ao carregar dados do Google Drive: {e}")
         return None
 
 # --- Carregamento dos dados ---
@@ -55,7 +60,7 @@ def load_data_from_url():
 # Alterado para rodar no stramlit Deploy
 gdf_estados = load_localidade_geodf("./datasets/gdf_estados.csv")
 # gdf_municipios = load_localidade_geodf("./datasets/gdf_municipios.csv")
-gdf_municipios = load_data_from_url()
+gdf_municipios = load_data_from_drive()
 df_reclamacoes = load_series_temporais('./datasets/RECLAMEAQUI_CARREFUOR_CLS.csv')
 
 
