@@ -1,0 +1,12 @@
+matplotlib
+seaborn
+plotly
+dash
+streamlit
+geopandas
+pandas
+Polygon
+ast
+folium
+folium_static
+plotly.express
