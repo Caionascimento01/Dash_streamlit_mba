@@ -48,8 +48,9 @@ def load_data_from_drive():
         # Baixa o arquivo
         gdown.download(f'https://drive.google.com/uc?id={GOOGLE_DRIVE_FILE_ID}', LOCAL_FILE_PATH, quiet=False)
         df = pd.read_csv(LOCAL_FILE_PATH)
-        st.success("Dados carregados do Google Drive!")
-        return df
+        df['coords'] = gpd.GeoSeries.from_wkt(df['POLYGON'])
+        gdf = gpd.GeoDataFrame(df, geometry='coords', crs="EPSG:4326")
+        return gdf
     except Exception as e:
         st.error(f"Erro ao carregar dados do Google Drive: {e}")
         return None
@@ -61,9 +62,8 @@ def load_data_from_drive():
 
 # Alterado para rodar no stramlit Deploy
 gdf_estados = load_localidade_geodf("./datasets/gdf_estados.csv")
-# gdf_municipios = load_localidade_geodf("./datasets/gdf_municipios.csv")
-gdf_municipios = load_data_from_drive()
 df_reclamacoes = load_series_temporais('./datasets/RECLAMEAQUI_CARREFUOR_CLS.csv')
+gdf_municipios = load_data_from_drive()
 
 
 # --- Título do Dashboard ---
