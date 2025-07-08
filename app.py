@@ -1,15 +1,13 @@
 import streamlit as st
 import pandas as pd
 import geopandas as gpd
-from shapely.geometry import Polygon
 import plotly.express as px
 import folium
-from streamlit_folium import folium_static
+from streamlit_folium import st_folium  # CORREÇÃO: Usar st_folium
 import nltk
 from nltk.corpus import stopwords
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
-import os
 import gdown
 
 # --- Configurações da página ---
@@ -20,31 +18,8 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- Função para carregar o GeoDataFrame das localidades ---
-@st.cache_data
-def load_localidade_geodf(path):
-    df = pd.read_csv(path, sep=',')
-    # Converte texto -> lista -> shapely.geometry.Polygon
-    df['coords'] = gpd.GeoSeries.from_wkt(df['POLYGON'])
-    gdf = gpd.GeoDataFrame(df, geometry='coords', crs="EPSG:4326")
-    return gdf
+# --- Funções de Carregamento de Dados (Otimizadas) ---
 
-# --- Função para carregar séries temporais ---
-@st.cache_data
-def load_series_temporais(path):
-    try:
-        df = pd.read_csv(path, sep=',', index_col=0, parse_dates=True)
-        # Otimização: especifique o formato para pd.to_datetime
-        df["TEMPO"] = pd.to_datetime(df['TEMPO'], format='%d-%m-%Y', errors='coerce')
-        return df
-    except FileNotFoundError:
-        st.error(f"Erro: O arquivo de reclamações não foi encontrado em {path}.")
-        return pd.DataFrame() # Retorna um DataFrame vazio para evitar erros posteriores
-    except Exception as e:
-        st.error(f"Erro ao carregar ou processar o arquivo de reclamações: {e}")
-        return pd.DataFrame() # Retorna um DataFrame vazio
-
-# --- Funçao para carregar o mapa dos municipios
 @st.cache_data
 def load_geodata(path_or_url, is_url=False):
     """
@@ -78,15 +53,24 @@ def load_geodata(path_or_url, is_url=False):
         st.error(f"Erro ao carregar ou processar dados geográficos: {e}")
         return gpd.GeoDataFrame()
 
-
-# --- Carregamento dos dados ---
-# gdf_estados = load_localidade_geodf("..\datasets\gdf_estados.csv")
-# gdf_municipios = load_localidade_geodf("..\datasets\gdf_municipios.csv")
-# df_reclamacoes = load_series_temporais('..\datasets\RECLAMEAQUI_CARREFUOR_CLS.csv')
+@st.cache_data
+def load_series_temporais(path):
+    """Carrega os dados de reclamações e faz o parsing de datas."""
+    try:
+        df = pd.read_csv(path, sep=',', index_col=0, parse_dates=True, dayfirst=True)
+        # O parse_dates junto com dayfirst=True já otimiza o carregamento de datas no formato 'dd-mm-YYYY'
+        return df
+    except FileNotFoundError:
+        st.error(f"Erro: O arquivo de reclamações não foi encontrado em '{path}'.")
+        return pd.DataFrame()
+    except Exception as e:
+        st.error(f"Erro ao carregar o arquivo de reclamações: {e}")
+        return pd.DataFrame()
 
 # --- Carregamento dos dados ---
 GEODATA_MUNICIPIOS_URL = 'https://drive.google.com/uc?id=1a7lmiRSSzkiqgWV4lHnfXkivIK4iMUys'
 
+# AVISO: Certifique-se que esses caminhos estão corretos em relação à raiz do seu repositório no Github.
 gdf_estados = load_geodata("./datasets/gdf_estados.csv")
 gdf_municipios = load_geodata(GEODATA_MUNICIPIOS_URL, is_url=True)
 df_reclamacoes = load_series_temporais('./datasets/RECLAMEAQUI_CARREFUOR_CLS.csv')
@@ -96,44 +80,32 @@ df_reclamacoes = load_series_temporais('./datasets/RECLAMEAQUI_CARREFUOR_CLS.csv
 st.title("✅ Dashboard de Análise de Reclamações")
 st.markdown("---")
 
-# --- Sidebar com seletores ---
-st.sidebar.title("Filtros 🔍")
 
-# Seletor de periodo
-st.sidebar.header("Selecione o período")
-data_inicio = st.sidebar.date_input("Data de Início",
-                                     value=df_reclamacoes["TEMPO"].min(),
-                                     min_value=df_reclamacoes["TEMPO"].min(),
-                                     max_value=df_reclamacoes["TEMPO"].max(),
-                                     format="DD-MM-YYYY")
-data_inicio = pd.to_datetime(data_inicio, format='%d-%m-%Y', errors='coerce')
+# --- Evita que o app quebre se os dados não forem carregados ---
+if df_reclamacoes.empty or gdf_municipios.empty:
+    st.error("Dados essenciais não puderam ser carregados. O dashboard não pode ser exibido.")
+else:
+    # --- Sidebar com seletores ---
+    st.sidebar.title("Filtros 🔍")
+    st.sidebar.header("Selecione o período")
+    data_inicio = st.sidebar.date_input("Data de Início", value=df_reclamacoes.index.min(), min_value=df_reclamacoes.index.min(), max_value=df_reclamacoes.index.max())
+    data_fim = st.sidebar.date_input("Data de Fim", value=df_reclamacoes.index.max(), min_value=df_reclamacoes.index.min(), max_value=df_reclamacoes.index.max())
 
-data_fim = st.sidebar.date_input("Data de Fim", 
-                                  value=df_reclamacoes["TEMPO"].max(), 
-                                  min_value=df_reclamacoes["TEMPO"].min(), 
-                                  max_value=df_reclamacoes["TEMPO"].max(), 
-                                  format="DD-MM-YYYY")
-data_fim = pd.to_datetime(data_fim, format='%d-%m-%Y', errors='coerce')
+    df_filtrado = df_reclamacoes.loc[data_inicio:data_fim]
 
-# Seletor de localidade
-st.sidebar.header("Selecione a localidade")
-opcoes_estados = sorted(gdf_municipios['NM_UF'].unique())
-opcoes_completas = ['Todos'] + opcoes_estados
-estado = st.sidebar.selectbox("Estado", options=opcoes_completas)
+    st.sidebar.header("Selecione a localidade")
+    opcoes_estados = ['Todos'] + sorted(gdf_municipios['NM_UF'].unique())
+    estado = st.sidebar.selectbox("Estado", options=opcoes_estados)
 
-# Seletor de situação
-st.sidebar.header("Selecione a situação")
-situacao_selecionada = st.sidebar.multiselect("Situação", options=sorted(df_reclamacoes['STATUS'].unique().tolist()))
+    if estado != 'Todos':
+        df_filtrado = df_filtrado[df_filtrado['NOME_UF'] == estado]
 
-# Filtrar o DataFrame com base nas datas selecionadas
-df_filtrado = df_reclamacoes[(df_reclamacoes["TEMPO"] >= data_inicio) 
-                           & (df_reclamacoes["TEMPO"] <= data_fim)]
+    st.sidebar.header("Selecione a situação")
+    situacoes_disponiveis = sorted(df_filtrado['STATUS'].unique())
+    situacao_selecionada = st.sidebar.multiselect("Situação", options=situacoes_disponiveis)
 
-if estado != 'Todos':
-    df_filtrado = df_filtrado[df_filtrado['NOME_UF'] == estado]
-
-if len(situacao_selecionada) > 0:
-    df_filtrado = df_filtrado[df_filtrado['STATUS'].isin(situacao_selecionada)]
+    if situacao_selecionada:
+        df_filtrado = df_filtrado[df_filtrado['STATUS'].isin(situacao_selecionada)]
 
 # --- Gráficos temporais por reclamações ---
 st.subheader(f"🔢 Reclamações por situação")
@@ -400,112 +372,54 @@ else:
 st.subheader("🗺️ Mapa de calor - Reclamações por Estado / Município")
 st.markdown("Para apresentar as informações por municípios, selecione um estado nos filtros laterais")
 
-col1, col2, col3 = st.columns(3)
+map_col1, map_col2 = st.columns([1, 4])
+with map_col1:
+    anos_disponiveis = ['Todos'] + sorted(df_filtrado.index.year.unique())
+    ano_mapa = st.selectbox("Ano do Mapa", options=anos_disponiveis)
 
-with col1:
-    # Seletor de ano para mapa
-    opcoes_anos = sorted(df_filtrado['ANO'].unique())
-    todas_opcoes = ['Todos'] + opcoes_anos
-    ano = st.selectbox("Selecione o ano:", options=todas_opcoes)
+df_mapa = df_filtrado[df_filtrado.index.year == ano_mapa] if ano_mapa != 'Todos' else df_filtrado.copy()
 
-if ano != 'Todos':
-    df_mapa = df_filtrado[df_filtrado['ANO'] == ano]
-else:
-    df_mapa = df_filtrado.copy()
-
+# Define o objeto do mapa
+mapa = folium.Map(location=[-15.78, -47.92], zoom_start=4)
 
 if estado != 'Todos':
-    df_mapa = df_mapa[df_mapa['NOME_UF'] == estado]
-    gdf_municipios = gdf_municipios[gdf_municipios["NM_UF"] == estado]
-
-    gdf_municipios_proj = gdf_municipios.to_crs(epsg=3857)
+    # --- Lógica para Municípios ---
+    reclamacoes_por_municipio = df_mapa.groupby('MUNICIPIO').size().reset_index(name='Qtd_Reclamacoes')
+    gdf_municipios_estado = gdf_municipios[gdf_municipios['NM_UF'] == estado]
     
-    # Agrupando informações dos estados
-    df_mapa = df_mapa.groupby(['MUNICIPIO']).size().reset_index(name='Qtd_Reclamacoes')
-
-    # Unificando com os dados de localização de cada estado
-    gdf_final = gdf_municipios.merge(df_mapa, left_on='NM_MUN', right_on='MUNICIPIO', how='left')
-
-    # Substituindo valores nulos
-    gdf_final['Qtd_Reclamacoes'] = gdf_final['Qtd_Reclamacoes'].fillna(0).astype(int)
-
-    # Centraliza o mapa
-    lat_center = gdf_final.geometry.centroid.y.mean()
-    lon_center = gdf_final.geometry.centroid.x.mean()
-    mapa = folium.Map(location=[lat_center, lon_center], zoom_start=6)
-
-    # Adicionando as informações no mapa
-    choropleth = folium.Choropleth(
-        geo_data=gdf_final,
-        name='choropleth',
-        data=gdf_final,
-        columns=['MUNICIPIO', 'Qtd_Reclamacoes'],
-        key_on='feature.properties.NM_MUN', # Chave no GeoJSON para conectar os dados
-        fill_color='YlOrRd', # Nome do colormap (escala de cores)
-        nan_fill_color='gray',
-        nan_fill_opacity=0.4,
-        fill_opacity=0.7,
-        line_opacity=0.2,
-        legend_name='Quantidade de Reclamações',
-        highlight=True, # Destaca a área ao passar o mouse
-    )
-
-    choropleth.add_to(mapa)
-
-    # --- Adicionar Tooltips Interativos (Informação no Hover) ---
-    tooltip = folium.features.GeoJsonTooltip(
-        fields=['NM_MUN', 'AREA_KM2', 'Qtd_Reclamacoes'],
-        aliases=['Município:', 'Área (Km²):', 'N° de Reclamações:'],
-        style="background-color: white; color: #333333; font-family: arial; font-size: 12px; padding: 10px;",
-        sticky=True
-    )
-
-    tooltip.add_to(choropleth.geojson)
+    gdf_final = gdf_municipios_estado.merge(reclamacoes_por_municipio, left_on='NM_MUN', right_on='MUNICIPIO', how='left')
+    gdf_final['Qtd_Reclamacoes'] = gdf_final['Qtd_Reclamacoes'].fillna(0)
+    
+    # CORREÇÃO: Garante que o centroide seja calculado em um GeoDataFrame
+    if not gdf_final.empty:
+        mapa.location = [gdf_final.geometry.centroid.y.mean(), gdf_final.geometry.centroid.x.mean()]
+        mapa.zoom_start = 6
+    
+    key_on = 'feature.properties.NM_MUN'
+    columns = ['NM_MUN', 'Qtd_Reclamacoes']
 
 else:
+    # --- Lógica para Estados ---
+    reclamacoes_por_estado = df_mapa.groupby('NOME_UF').size().reset_index(name='Qtd_Reclamacoes')
+    gdf_final = gdf_estados.merge(reclamacoes_por_estado, on='NOME_UF', how='left')
+    gdf_final['Qtd_Reclamacoes'] = gdf_final['Qtd_Reclamacoes'].fillna(0)
+    key_on = 'feature.properties.NM_UF'
+    columns = ['NOME_UF', 'Qtd_Reclamacoes']
 
-    # Centralizar o mapa na área de interesse
-    mapa = folium.Map(location=[gdf_estados.geometry.centroid.y.mean(), gdf_estados.geometry.centroid.x.mean()], zoom_start=4.3)
-
-    # Agrupando informações dos estados
-    df_mapa = df_mapa.groupby(['NOME_UF']).size().reset_index(name='Qtd_Reclamacoes')
-
-    # Unificando com os dados de localização de cada estado
-    gdf_final = gdf_estados.merge(df_mapa, left_on='NM_UF', right_on='NOME_UF', how='left')
-
-    # Substituindo valores nulos
-    gdf_final['Qtd_Reclamacoes'] = gdf_final['Qtd_Reclamacoes'].fillna(0).astype(int)
-
-    # Adicionando as informações no mapa
-    choropleth = folium.Choropleth(
-        geo_data=gdf_final,
-        name='choropleth',
+# Adiciona a camada Choropleth ao mapa
+if not gdf_final.empty:
+    folium.Choropleth(
+        geo_data=gdf_final.to_json(),
         data=gdf_final,
-        columns=['NOME_UF', 'Qtd_Reclamacoes'],
-        key_on='feature.properties.NM_UF', # Chave no GeoJSON para conectar os dados
-        fill_color='YlOrRd', # Nome do colormap (escala de cores)
-        nan_fill_color='gray',
-        nan_fill_opacity=0.4,
+        columns=columns,
+        key_on=key_on,
+        fill_color='YlOrRd',
         fill_opacity=0.7,
         line_opacity=0.2,
-        legend_name='Quantidade de Reclamações',
-        bins=8,
-        highlight=True, # Destaca a área ao passar o mouse
-    )
+        legend_name='Quantidade de Reclamações'
+    ).add_to(mapa)
 
-    choropleth.add_to(mapa)
-
-    # --- Adicionar Tooltips Interativos (Informação no Hover) ---
-    tooltip = folium.features.GeoJsonTooltip(
-        fields=['NM_UF', 'AREA_KM2', 'Qtd_Reclamacoes'],
-        aliases=['Estado:', 'Área (Km²):', 'N° de Reclamações:'],
-        style="background-color: white; color: #333333; font-family: arial; font-size: 12px; padding: 10px;",
-        sticky=True
-    )
-
-    tooltip.add_to(choropleth.geojson)
-
-    
-folium_static(mapa, width=1000, height=600)
+# CORREÇÃO: Usa st_folium para renderizar o mapa
+st_folium(mapa, use_container_width=True, height=600)
 
 ### Fim do código
