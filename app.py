@@ -326,15 +326,12 @@ st.subheader("📝 WordCloud - Palavras mais Frequentes nas Descrições")
 # Aponta para o diretório dentro do repositório
 nltk.data.path.append(str(Path(__file__).parent / "nltk_data"))
 
-# Agora isso deve funcionar sem precisar baixar
-stopwords = set(stopwords.words("portuguese"))
-
 # 3) agora tente carregar as stopwords
-try:
-    stopwords = set(stopwords.words("portuguese"))
-except LookupError:
-    st.warning("Stopwords do NLTK não encontradas. Usando lista vazia.")
-    stopwords = set()
+#try:
+#    stopwords = set(stopwords.words("portuguese"))
+#except LookupError:
+#    st.warning("Stopwords do NLTK não encontradas. Usando lista vazia.")
+#    stopwords = set()
 
 novas_stopwords = ["empresa", "comprei", "loja", "não", "pra", "tive", "minha", "nao", "apenas"
                    , "ter", "bem", "bom", "muito", "pouco", "mais", "menos", "ainda", "já", "agora", "hoje"
@@ -351,8 +348,12 @@ novas_stopwords = ["empresa", "comprei", "loja", "não", "pra", "tive", "minha",
                    , "bom", "ficou", "fiquei", "total", "recebi", "recebeu", "nada", "nenhuma", "nenhum", "nada", "tudo"
                    , "falei", "falaram", "dizer", "dizendo", "dizem", "disseram", "tempo"]
 
-for palavra in novas_stopwords:
-    stopwords.append(palavra)
+#for palavra in novas_stopwords:
+#    stopwords.append(palavra)
+
+# Agora isso deve funcionar sem precisar baixar
+stopwords = set(stopwords.words("portuguese"))
+stop_pt = set(nltk_stopwords.words("portuguese")) | set(novas_stopwords)
 
 # Concatenar todas as descrições em uma única string
 textos = ' '.join(df_filtrado['DESCRICAO'].dropna().astype(str).tolist())
