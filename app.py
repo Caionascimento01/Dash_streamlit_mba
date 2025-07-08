@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 import os
 import gdown
+from pathlib import Path
 
 # -- Utilizando o NLTK para stopwords em português --
 # Aponta o NLTK para a pasta 'nltk_data/' no diretório raiz do projeto
@@ -54,20 +55,23 @@ def load_series_temporais(path):
 @st.cache_data(show_spinner=False)
 def load_geodata(path_or_url, is_url=False):
     if is_url:
-        output_path = 'gdf_municipios.csv'
+        # 2) Cria output_path como Path, não string
+        output_path = Path("gdf_municipios.csv")
+        # 3) Checa existência via .exists()
         if not output_path.exists():
             try:
-                gdown.download(path_or_url, output_path, quiet=False)
-                path = output_path
+                gdown.download(path_or_url, str(output_path), quiet=False)
             except Exception as e:
                 st.error(f"Falha ao baixar o arquivo geográfico da URL: {e}")
-                return gpd.GeoDataFrame() # Retorna GeoDataFrame vazio
+                return gpd.GeoDataFrame()  # retorna vazio em caso de falha
+        path = output_path
     else:
-        path = path_or_url
+        # 4) Se veio um caminho local, transforme em Path
+        path = Path(path_or_url)
 
     try:
         df = pd.read_csv(path, sep=',')
-        # CORREÇÃO CRÍTICA: Garante a conversão para GeoDataFrame
+        # converte para GeoDataFrame usando a coluna WKT
         gdf = gpd.GeoDataFrame(
             df,
             geometry=gpd.GeoSeries.from_wkt(df['POLYGON']),
