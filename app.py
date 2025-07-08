@@ -9,21 +9,25 @@ import nltk
 from nltk.corpus import stopwords
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
-import os
-import gdown
 from pathlib import Path
 
 # -- Utilizando o NLTK para stopwords em português --
-# Aponta o NLTK para a pasta 'nltk_data/' no diretório raiz do projeto
-NLTK_DATA_DIR = Path(__file__).parent / "nltk_data"
+# base_dir = raiz do seu projeto (onde está app.py)
+BASE_DIR = Path(__file__).parent
+
+# 1) defina o diretório que CONTÉM corpora/
+NLTK_DATA_DIR = BASE_DIR / "nltk_data"
+
+# 2) adicione esse path ao NLTK
 nltk.data.path.append(str(NLTK_DATA_DIR))
 
-# Tenta carregar stopwords; em caso de falha, usa lista vazia ou fallback
+# 3) agora tente carregar as stopwords
 try:
     stop_words = set(stopwords.words("portuguese"))
 except LookupError:
     st.warning("Stopwords do NLTK não encontradas. Usando lista vazia.")
     stop_words = set()
+
 
 # --- Configurações da página ---
 st.set_page_config(
@@ -403,8 +407,9 @@ if ano != 'Todos':
 else:
     df_mapa = df_filtrado.copy()
 
+gdf = gdf_estados.to_crs(epsg=3857)
 # Centralizar o mapa na área de interesse
-mapa = folium.Map(location=[gdf_estados.geometry.centroid.y.mean(), gdf_estados.geometry.centroid.x.mean()], zoom_start=4.3)
+mapa = folium.Map(location=[gdf.geometry.centroid.y.mean(), gdf.geometry.centroid.x.mean()], zoom_start=4.3)
 
 if estado != 'Todos':
     df_mapa = df_mapa[df_mapa['NOME_UF'] == estado]
