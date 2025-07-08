@@ -428,11 +428,11 @@ if gdf_mapa.empty:
     st.warning("Nenhuma reclamação encontrada no estado selecionado. Por favor, ajuste os filtros.")
     st.stop()  # Interrompe a execução do restante do código
 
-# Centralizar mapa na área de interesse
-gdf_proj = gdf_mapa.to_crs(epsg=3857)  # projetado para cálculo espacial
-uniao = union_all(gdf_proj.geometry)
-centro = uniao.centroid
-mapa = folium.Map(location=[centro.y, centro.x], zoom_start=4.3)
+# Centralizar mapa
+mapa = folium.Map(
+    location=[-14.2350, -51.9253],
+    zoom_start=4.3
+)
 
 if estado != 'Todos':
     df_mapa = df_mapa[df_mapa['NOME_UF'] == estado]
