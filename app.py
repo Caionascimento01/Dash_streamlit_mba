@@ -506,6 +506,6 @@ else:
     tooltip.add_to(choropleth.geojson)
 
     
-st_folium(mapa, width=1000, height=600)
+folium_static(mapa, width=1000, height=600)
 
 ### Fim do código
