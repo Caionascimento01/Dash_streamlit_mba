@@ -352,7 +352,7 @@ novas_stopwords = ["empresa", "comprei", "loja", "não", "pra", "tive", "minha",
 #    stopwords.append(palavra)
 
 # Agora isso deve funcionar sem precisar baixar
-stopwords = set(stopwords.words("portuguese"))
+#stopwords = set(stopwords.words("portuguese"))
 stop_pt = set(nltk_stopwords.words("portuguese")) | set(novas_stopwords)
 
 # Concatenar todas as descrições em uma única string
@@ -370,7 +370,7 @@ if texto and not texto.isspace():
             width=800,
             height=400,
             background_color='white',
-            stopwords=stopwords,
+            stopwords=stop_pt,
             colormap='viridis', 
             max_words=50
         ).generate(texto)
