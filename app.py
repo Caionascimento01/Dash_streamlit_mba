@@ -20,7 +20,7 @@ st.set_page_config(
 )
 
 # --- Função para carregar o GeoDataFrame das localidades ---
-@st.cache_resource(ttl=3600)
+@st.cache_data(ttl=3600)
 def load_localidade_geodf(path):
     df = pd.read_csv(path, sep=',')
     # Converte texto -> lista -> shapely.geometry.Polygon
@@ -58,14 +58,6 @@ gdf_municipios_centro_oeste = load_localidade_geodf("./datasets/gdf_municipios_c
 gdf_municipios_sudeste = load_localidade_geodf("./datasets/gdf_municipios_sudeste.csv")
 gdf_municipios_sul = load_localidade_geodf("./datasets/gdf_municipios_sul.csv")
 
-# Concatenando os GeoDataFrames dos municípios
-gdf_municipios = pd.concat([
-    gdf_municipios_norte,
-    gdf_municipios_nordeste,
-    gdf_municipios_centro_oeste,
-    gdf_municipios_sudeste,
-    gdf_municipios_sul
-], ignore_index=True)
 
 # --- Título do Dashboard ----
 st.title("✅ Dashboard de Análise de Reclamações")
@@ -406,19 +398,43 @@ if ano != 'Todos':
 else:
     df_mapa = df_filtrado.copy()
 
-gdf = gdf_estados.to_crs(epsg=3857)
+# Verifica se o DataFrame df_mapa está vazio
+if df_mapa.empty:
+    st.warning("Nenhuma reclamação encontrada para o ano selecionado. Por favor, ajuste os filtros.")
+    st.stop()  # Interrompe a execução do restante do código
+
+# Identificar a região do Brasil a ser exibida no mapa pelo estado selecionado
+if estado == 'Todos':
+    gdf_mapa = gdf_estados.copy()
+else:
+    if estado in ["ACRE", "AMAZONAS", "RORAIMA", "RONDONIA", "TOCANTINS"]:
+        gdf_mapa = gdf_municipios_norte.copy()
+    elif estado in ["ALAGOAS", "BAHIA", "CEARA", "MARANHAO", "PARAIBA", "PERNAMBUCO", "PIAUI", "RIO GRANDE DO NORTE", "SERGIPE"]:
+        gdf_mapa = gdf_municipios_nordeste.copy()
+    elif estado in ["DISTRITO FEDERAL", "GOIAS", "MATO GROSSO", "MATO GROSSO DO SUL"]:
+        gdf_mapa = gdf_municipios_centro_oeste.copy()
+    elif estado in ["ESPIRITO SANTO", "MINAS GERAIS", "RIO DE JANEIRO", "SAO PAULO"]:
+        gdf_mapa = gdf_municipios_sudeste.copy()
+    elif estado in ["PARANA", "RIO GRANDE DO SUL", "SANTA CATARINA"]:
+        gdf_mapa = gdf_municipios_sul.copy()
+
+# Verifica se o DataFrame df_mapa está vazio
+if gdf_mapa.empty:
+    st.warning("Nenhuma reclamação encontrada no estado selecionado. Por favor, ajuste os filtros.")
+    st.stop()  # Interrompe a execução do restante do código
+
 # Centralizar o mapa na área de interesse
-mapa = folium.Map(location=[gdf.geometry.centroid.y.mean(), gdf.geometry.centroid.x.mean()], zoom_start=4.3)
+mapa = folium.Map(location=[gdf_mapa.geometry.centroid.y.mean(), gdf_mapa.geometry.centroid.x.mean()], zoom_start=4.3)
 
 if estado != 'Todos':
     df_mapa = df_mapa[df_mapa['NOME_UF'] == estado]
-    gdf_municipios = gdf_municipios[gdf_municipios["NM_UF"] == estado]
-    
+    gdf_mapa = gdf_mapa[gdf_mapa["NM_UF"] == estado]
+
     # Agrupando informações dos estados
     df_mapa = df_mapa.groupby(['MUNICIPIO']).size().reset_index(name='Qtd_Reclamacoes')
 
     # Unificando com os dados de localização de cada estado
-    gdf_final = gdf_municipios.merge(df_mapa, left_on='NM_MUN', right_on='MUNICIPIO', how='left')
+    gdf_final = gdf_mapa.merge(df_mapa, left_on='NM_MUN', right_on='MUNICIPIO', how='left')
 
     # Substituindo valores nulos
     gdf_final['Qtd_Reclamacoes'] = gdf_final['Qtd_Reclamacoes'].fillna(0).astype(int)
@@ -457,7 +473,7 @@ else:
     df_mapa = df_mapa.groupby(['NOME_UF']).size().reset_index(name='Qtd_Reclamacoes')
 
     # Unificando com os dados de localização de cada estado
-    gdf_final = gdf_estados.merge(df_mapa, left_on='NM_UF', right_on='NOME_UF', how='left')
+    gdf_final = gdf_mapa.merge(df_mapa, left_on='NM_UF', right_on='NOME_UF', how='left')
 
     # Substituindo valores nulos
     gdf_final['Qtd_Reclamacoes'] = gdf_final['Qtd_Reclamacoes'].fillna(0).astype(int)
