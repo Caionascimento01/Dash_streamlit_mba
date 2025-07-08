@@ -432,7 +432,7 @@ if estado != 'Todos':
     # Centraliza o mapa
     lat_center = gdf_final.geometry.centroid.y.mean()
     lon_center = gdf_final.geometry.centroid.x.mean()
-    map_view = folium.Map(location=[lat_center, lon_center], zoom_start=6)
+    mapa = folium.Map(location=[lat_center, lon_center], zoom_start=6)
 
     # Adicionando as informações no mapa
     choropleth = folium.Choropleth(
