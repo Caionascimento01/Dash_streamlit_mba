@@ -403,8 +403,6 @@ mapa = folium.Map(location=[gdf_estados.geometry.centroid.y.mean(), gdf_estados.
 if estado != 'Todos':
     df_mapa = df_mapa[df_mapa['NOME_UF'] == estado]
     gdf_municipios = gdf_municipios[gdf_municipios["NM_UF"] == estado]
-
-    gdf_municipios_proj = gdf_municipios.to_crs(epsg=3857)
     
     # Agrupando informações dos estados
     df_mapa = df_mapa.groupby(['MUNICIPIO']).size().reset_index(name='Qtd_Reclamacoes')
