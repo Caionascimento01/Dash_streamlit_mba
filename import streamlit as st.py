@@ -12,11 +12,6 @@ from wordcloud import WordCloud
 import os
 import gdown
 
-# -- Utilizando o NLTK para stopwords em português --
-caminho = os.path.join(os.path.dirname(__file__), "nltk_data")
-nltk.data.path.append(caminho)
-stop_words = set(stopwords.words("portuguese"))
-
 # --- Configurações da página ---
 st.set_page_config(
     page_title="Dash - Reclamações Carrefour",
