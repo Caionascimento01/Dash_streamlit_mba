@@ -6,7 +6,7 @@ import plotly.express as px
 import folium
 from streamlit_folium import st_folium
 import nltk
-from nltk.corpus import stopwords
+from nltk.corpus import stopwords as nltk_stopwords
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 from pathlib import Path
