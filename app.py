@@ -340,11 +340,9 @@ else:
 # **WordCloud** com as palavras mais frequentes nos textos das descrições.
 st.subheader("📝 WordCloud - Palavras mais Frequentes nas Descrições")
 
+# Obter a lista de stopwords em português
 nltk.data.path.append('nltk_data')
 stopwords = set(stopwords.words('portuguese'))
-
-# Obter a lista de stopwords em português
-stopwords_portugues = stopwords.words('portuguese')
 
 novas_stopwords = ["empresa", "comprei", "loja", "não", "pra", "tive", "minha", "nao", "apenas"
                    , "ter", "bem", "bom", "muito", "pouco", "mais", "menos", "ainda", "já", "agora", "hoje"
@@ -362,7 +360,7 @@ novas_stopwords = ["empresa", "comprei", "loja", "não", "pra", "tive", "minha",
                    , "falei", "falaram", "dizer", "dizendo", "dizem", "disseram", "tempo"]
 
 for palavra in novas_stopwords:
-    stopwords_portugues.append(palavra)
+    stopwords.append(palavra)
 # Concatenar todas as descrições em uma única string
 textos = ' '.join(df_filtrado['DESCRICAO'].dropna().astype(str).tolist())
 
@@ -378,7 +376,7 @@ if texto and not texto.isspace():
             width=800,
             height=400,
             background_color='white',
-            stopwords=stopwords_portugues,
+            stopwords=stopwords,
             colormap='viridis', 
             max_words=50
         ).generate(texto)
