@@ -14,8 +14,7 @@ import gdown
 
 # -- Utilizando o NLTK para stopwords em português --
 # Aponta o NLTK para a pasta 'nltk_data/' no diretório raiz do projeto
-BASE_DIR = Path(__file__).parent
-NLTK_DATA_DIR = BASE_DIR / "nltk_data"
+NLTK_DATA_DIR = "./nltk_data"
 nltk.data.path.append(str(NLTK_DATA_DIR))
 stop_words = set(stopwords.words("portuguese"))
 
