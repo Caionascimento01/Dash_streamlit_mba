@@ -51,40 +51,6 @@ def load_series_temporais(path):
         st.error(f"Erro ao carregar ou processar o arquivo de reclamações: {e}")
         return pd.DataFrame() # Retorna um DataFrame vazio
 
-# --- Funçao para carregar o mapa dos municipios
-@st.cache_data(show_spinner=False)
-def load_geodata(path_or_url, is_url=False):
-    if is_url:
-        # 2) Cria output_path como Path, não string
-        output_path = Path("gdf_municipios.csv")
-        # 3) Checa existência via .exists()
-        if not output_path.exists():
-            try:
-                gdown.download(path_or_url, str(output_path), quiet=False)
-            except Exception as e:
-                st.error(f"Falha ao baixar o arquivo geográfico da URL: {e}")
-                return gpd.GeoDataFrame()  # retorna vazio em caso de falha
-        path = output_path
-    else:
-        # 4) Se veio um caminho local, transforme em Path
-        path = Path(path_or_url)
-
-    try:
-        df = pd.read_csv(path, sep=',')
-        # converte para GeoDataFrame usando a coluna WKT
-        gdf = gpd.GeoDataFrame(
-            df,
-            geometry=gpd.GeoSeries.from_wkt(df['POLYGON']),
-            crs="EPSG:4326"
-        )
-        return gdf
-    except FileNotFoundError:
-        st.error(f"Erro: O arquivo geográfico não foi encontrado em '{path}'. Verifique o caminho.")
-        return gpd.GeoDataFrame()
-    except Exception as e:
-        st.error(f"Erro ao carregar ou processar dados geográficos: {e}")
-        return gpd.GeoDataFrame()
-
 
 # --- Carregamento dos dados ---
 # gdf_estados = load_localidade_geodf("..\datasets\gdf_estados.csv")
@@ -92,12 +58,22 @@ def load_geodata(path_or_url, is_url=False):
 # df_reclamacoes = load_series_temporais('..\datasets\RECLAMEAQUI_CARREFUOR_CLS.csv')
 
 # --- Carregamento dos dados ---
-GEODATA_MUNICIPIOS_URL = 'https://drive.google.com/uc?id=1a7lmiRSSzkiqgWV4lHnfXkivIK4iMUys'
-
-gdf_estados = load_geodata("./datasets/gdf_estados.csv")
-gdf_municipios = load_geodata(GEODATA_MUNICIPIOS_URL, is_url=True)
 df_reclamacoes = load_series_temporais('./datasets/RECLAMEAQUI_CARREFUOR_CLS.csv')
+gdf_estados = load_localidade_geodf("./datasets/gdf_estados.csv")
+gdf_municipios_norte = load_localidade_geodf("./datasets/gdf_municipios_norte.csv")
+gdf_municipios_nordeste = load_localidade_geodf("./datasets/gdf_municipios_nordeste.csv")
+gdf_municipios_centro_oeste = load_localidade_geodf("./datasets/gdf_municipios_centro_oeste.csv")
+gdf_municipios_sudeste = load_localidade_geodf("./datasets/gdf_municipios_sudeste.csv")
+gdf_municipios_sul = load_localidade_geodf("./datasets/gdf_municipios_sul.csv")
 
+# Concatenando os GeoDataFrames dos municípios
+gdf_municipios = pd.concat([
+    gdf_municipios_norte,
+    gdf_municipios_nordeste,
+    gdf_municipios_centro_oeste,
+    gdf_municipios_sudeste,
+    gdf_municipios_sul
+], ignore_index=True)
 
 # --- Título do Dashboard ----
 st.title("✅ Dashboard de Análise de Reclamações")
