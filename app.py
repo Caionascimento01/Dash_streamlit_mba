@@ -309,10 +309,10 @@ else:
 
 st.subheader("📈 Dispersão: Tamanho do Texto vs. Tempo")
 
-if not df_filtrado.empty:
+if not df_fil.empty:
     # --- Criação do Gráfico de Dispersão com Plotly ---
     fig = px.scatter(
-        df_filtrado,
+        df_fil,
         x='TEMPO',
         y='Tamanho_Texto',
         color='STATUS',  # Usa a coluna 'STATUS' para colorir os pontos
