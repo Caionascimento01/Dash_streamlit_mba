@@ -11,24 +11,6 @@ import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 from pathlib import Path
 
-# -- Utilizando o NLTK para stopwords em português --
-# base_dir = raiz do seu projeto (onde está app.py)
-BASE_DIR = Path(__file__).parent
-
-# 1) defina o diretório que CONTÉM corpora/
-NLTK_DATA_DIR = BASE_DIR / "nltk_data"
-
-# 2) adicione esse path ao NLTK
-nltk.data.path.append(str(NLTK_DATA_DIR))
-
-# 3) agora tente carregar as stopwords
-try:
-    stop_words = set(stopwords.words("portuguese"))
-except LookupError:
-    st.warning("Stopwords do NLTK não encontradas. Usando lista vazia.")
-    stop_words = set()
-
-
 # --- Configurações da página ---
 st.set_page_config(
     page_title="Dash - Reclamações Carrefour",
@@ -340,9 +322,19 @@ else:
 # **WordCloud** com as palavras mais frequentes nos textos das descrições.
 st.subheader("📝 WordCloud - Palavras mais Frequentes nas Descrições")
 
-# Obter a lista de stopwords em português
-nltk.data.path.append('nltk_data')
-stopwords = set(stopwords.words('portuguese'))
+# -- Utilizando o NLTK para stopwords em português --
+# Aponta para o diretório dentro do repositório
+nltk.data.path.append(str(Path(__file__).parent / "nltk_data"))
+
+# Agora isso deve funcionar sem precisar baixar
+stopwords = set(stopwords.words("portuguese"))
+
+# 3) agora tente carregar as stopwords
+try:
+    stopwords = set(stopwords.words("portuguese"))
+except LookupError:
+    st.warning("Stopwords do NLTK não encontradas. Usando lista vazia.")
+    stopwords = set()
 
 novas_stopwords = ["empresa", "comprei", "loja", "não", "pra", "tive", "minha", "nao", "apenas"
                    , "ter", "bem", "bom", "muito", "pouco", "mais", "menos", "ainda", "já", "agora", "hoje"
@@ -361,6 +353,7 @@ novas_stopwords = ["empresa", "comprei", "loja", "não", "pra", "tive", "minha",
 
 for palavra in novas_stopwords:
     stopwords.append(palavra)
+
 # Concatenar todas as descrições em uma única string
 textos = ' '.join(df_filtrado['DESCRICAO'].dropna().astype(str).tolist())
 
