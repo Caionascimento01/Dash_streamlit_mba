@@ -84,7 +84,7 @@ data_fim = pd.to_datetime(data_fim, format='%d-%m-%Y', errors='coerce')
 
 # Seletor de localidade
 st.sidebar.header("Selecione a localidade")
-opcoes_estados = sorted(gdf_municipios['NM_UF'].unique())
+opcoes_estados = sorted(gdf_estados['NM_UF'].unique())
 opcoes_completas = ['Todos'] + opcoes_estados
 estado = st.sidebar.selectbox("Estado", options=opcoes_completas)
 
