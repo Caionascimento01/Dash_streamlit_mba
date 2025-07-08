@@ -423,8 +423,10 @@ if gdf_mapa.empty:
     st.warning("Nenhuma reclamação encontrada no estado selecionado. Por favor, ajuste os filtros.")
     st.stop()  # Interrompe a execução do restante do código
 
+gdf_coord = gdf_mapa.to_crs(epsg=4326)  # Converte para o sistema de coordenadas geográficas (WGS84)
+
 # Centralizar o mapa na área de interesse
-mapa = folium.Map(location=[gdf_mapa.geometry.centroid.y.mean(), gdf_mapa.geometry.centroid.x.mean()], zoom_start=4.3)
+mapa = folium.Map(location=[gdf_coord.geometry.centroid.y.mean(), gdf_coord.geometry.centroid.x.mean()], zoom_start=4.3)
 
 if estado != 'Todos':
     df_mapa = df_mapa[df_mapa['NOME_UF'] == estado]
