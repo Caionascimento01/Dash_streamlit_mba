@@ -4,7 +4,7 @@ import geopandas as gpd
 from shapely.geometry import Polygon
 import plotly.express as px
 import folium
-from streamlit_folium import folium_static
+from streamlit_folium import st_folium
 import nltk
 from nltk.corpus import stopwords
 import matplotlib.pyplot as plt
@@ -488,6 +488,6 @@ else:
     tooltip.add_to(choropleth.geojson)
 
     
-folium_static(mapa, width=1000, height=600)
+st_folium(mapa, width=1000, height=600)
 
 ### Fim do código
