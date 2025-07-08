@@ -21,59 +21,45 @@ st.set_page_config(
 # --- Funções de Carregamento de Dados (Otimizadas) ---
 
 @st.cache_data
-def load_geodata(path_or_url, is_url=False):
+def load_data_from_url(url, file_name, is_geo=False):
     """
-    Carrega dados geográficos de forma robusta, garantindo que o output
-    seja sempre um GeoDataFrame.
+    Baixa um arquivo de uma URL do Google Drive e o carrega.
+    Se is_geo=True, carrega como um GeoDataFrame.
     """
-    if is_url:
-        output_path = 'downloaded_geodata.csv'
-        try:
-            gdown.download(path_or_url, output_path, quiet=False)
-            path = output_path
-        except Exception as e:
-            st.error(f"Falha ao baixar o arquivo geográfico da URL: {e}")
-            return gpd.GeoDataFrame() # Retorna GeoDataFrame vazio
-    else:
-        path = path_or_url
-
+    output_path = f"./{file_name}"
+    
     try:
-        df = pd.read_csv(path, sep=',')
-        # CORREÇÃO CRÍTICA: Garante a conversão para GeoDataFrame
-        gdf = gpd.GeoDataFrame(
-            df,
-            geometry=gpd.GeoSeries.from_wkt(df['POLYGON']),
-            crs="EPSG:4326"
-        )
-        return gdf
-    except FileNotFoundError:
-        st.error(f"Erro: O arquivo geográfico não foi encontrado em '{path}'. Verifique o caminho.")
-        return gpd.GeoDataFrame()
+        # Baixa o arquivo
+        gdown.download(url, output_path, quiet=False)
+        
+        # Carrega o arquivo
+        if is_geo:
+            df = pd.read_csv(output_path, sep=',')
+            gdf = gpd.GeoDataFrame(
+                df,
+                geometry=gpd.GeoSeries.from_wkt(df['POLYGON']),
+                crs="EPSG:4326"
+            )
+            return gdf
+        else:
+            df = pd.read_csv(output_path, sep=',', index_col=0, parse_dates=True, dayfirst=True)
+            return df
+            
     except Exception as e:
-        st.error(f"Erro ao carregar ou processar dados geográficos: {e}")
-        return gpd.GeoDataFrame()
+        st.error(f"Falha ao baixar ou carregar o arquivo '{file_name}': {e}")
+        return gpd.GeoDataFrame() if is_geo else pd.DataFrame()
 
-@st.cache_data
-def load_series_temporais(path):
-    """Carrega os dados de reclamações e faz o parsing de datas."""
-    try:
-        df = pd.read_csv(path, sep=',', index_col=0, parse_dates=True, dayfirst=True)
-        # O parse_dates junto com dayfirst=True já otimiza o carregamento de datas no formato 'dd-mm-YYYY'
-        return df
-    except FileNotFoundError:
-        st.error(f"Erro: O arquivo de reclamações não foi encontrado em '{path}'.")
-        return pd.DataFrame()
-    except Exception as e:
-        st.error(f"Erro ao carregar o arquivo de reclamações: {e}")
-        return pd.DataFrame()
+
+# --- URLs dos seus arquivos de dados ---
+# AVISO: Substitua 'SEU_ID_AQUI' pelo ID correto de compartilhamento do Google Drive para cada arquivo.
+GEODATA_ESTADOS_URL = 'https://drive.google.com/uc?id=13z62QLEDqVSE7mXqlhpPaRRtQhszhPDR'
+GEODATA_MUNICIPIOS_URL = 'https://drive.google.com/uc?id=1a7lmiRSSzkiqgWV4lHnfXkivIK4iMUys'
+RECLAMACOES_URL = 'https://drive.google.com/uc?id=1W771udGNKSk4HTTuSyw77rWn3Mw3H5An'
 
 # --- Carregamento dos dados ---
-GEODATA_MUNICIPIOS_URL = 'https://drive.google.com/uc?id=1a7lmiRSSzkiqgWV4lHnfXkivIK4iMUys'
-
-# AVISO: Certifique-se que esses caminhos estão corretos em relação à raiz do seu repositório no Github.
-gdf_estados = load_geodata("./datasets/gdf_estados.csv")
-gdf_municipios = load_geodata(GEODATA_MUNICIPIOS_URL, is_url=True)
-df_reclamacoes = load_series_temporais('./datasets/RECLAMEAQUI_CARREFUOR_CLS.csv')
+gdf_estados = load_data_from_url(GEODATA_ESTADOS_URL, "gdf_estados.csv", is_geo=True)
+gdf_municipios = load_data_from_url(GEODATA_MUNICIPIOS_URL, "gdf_municipios.csv", is_geo=True)
+df_reclamacoes = load_data_from_url(RECLAMACOES_URL, "reclamacoes.csv")
 
 
 # --- Título do Dashboard ----
