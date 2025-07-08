@@ -38,7 +38,7 @@ st.set_page_config(
 )
 
 # --- Função para carregar o GeoDataFrame das localidades ---
-@st.cache_resource(ttl=3600))
+@st.cache_data(show_spinner=False)
 def load_localidade_geodf(path):
     df = pd.read_csv(path, sep=',')
     # Converte texto -> lista -> shapely.geometry.Polygon
@@ -47,7 +47,7 @@ def load_localidade_geodf(path):
     return gdf
 
 # --- Função para carregar séries temporais ---
-@st.cache_data(show_spinner=False, ttl=3600)
+@st.cache_data(show_spinner=False)
 def load_series_temporais(path):
     try:
         df = pd.read_csv(path, sep=',', index_col=0, parse_dates=['TEMPO'], dayfirst=True)
@@ -119,18 +119,14 @@ st.sidebar.header("Selecione a situação")
 situacao_selecionada = st.sidebar.multiselect("Situação", options=sorted(df_reclamacoes['STATUS'].unique().tolist()))
 
 # Filtrar o DataFrame com base nas datas selecionadas
-mask = (
-    (df_reclamacoes["TEMPO"] >= data_inicio) &
-    (df_reclamacoes["TEMPO"] <= data_fim)
-)
+df_filtrado = df_reclamacoes[(df_reclamacoes["TEMPO"] >= data_inicio) 
+                           & (df_reclamacoes["TEMPO"] <= data_fim)]
 
-if estado != "Todos":
-    mask &= (df_reclamacoes["NOME_UF"] == estado)
+if estado != 'Todos':
+    df_filtrado = df_filtrado[df_filtrado['NOME_UF'] == estado]
 
-if situacao_selecionada:
-    mask &= df_reclamacoes["STATUS"].isin(situacao_selecionada)
-
-df_filtrado = df_reclamacoes.loc[mask]
+if len(situacao_selecionada) > 0:
+    df_filtrado = df_filtrado[df_filtrado['STATUS'].isin(situacao_selecionada)]
 
 # --- Gráficos temporais por reclamações ---
 st.subheader(f"🔢 Reclamações por situação")
@@ -251,19 +247,17 @@ else:
 st.subheader("📏 Distribuição do Tamanho dos Textos das Reclamações")
 
 # Calcular o tamanho dos textos
-# df_filtrado['Tamanho_Texto'] = df_filtrado['DESCRICAO'].apply(lambda x: len(str(x)) if pd.notnull(x) else 0)
-df_fil = df_filtrado.copy()
-df_fil['Tamanho_Texto'] = df_fil['DESCRICAO'].fillna("").str.len()
+df_filtrado['Tamanho_Texto'] = df_filtrado['DESCRICAO'].apply(lambda x: len(str(x)) if pd.notnull(x) else 0)
 
 # Agrupar por tamanho do texto e contar as reclamações
-df_tamanho_texto = df_fil.groupby('Tamanho_Texto').size().reset_index(name='Qtd_Reclamacoes')
+df_tamanho_texto = df_filtrado.groupby('Tamanho_Texto').size().reset_index(name='Qtd_Reclamacoes')
 
 # Metricas gerais
 st.markdown("##### Métricas Gerais")
 col1, col2, col3 = st.columns(3)
-tamanho_medio = int(df_fil['Tamanho_Texto'].mean())
-tamanho_max = int(df_fil['Tamanho_Texto'].max())
-tamanho_min = int(df_fil['Tamanho_Texto'].min())
+tamanho_medio = int(df_filtrado['Tamanho_Texto'].mean())
+tamanho_max = int(df_filtrado['Tamanho_Texto'].max())
+tamanho_min = int(df_filtrado['Tamanho_Texto'].min())
 
 col1.metric("Tamanho Mínimo", f"{tamanho_min} caracteres")
 col2.metric("Tamanho Médio", f"{tamanho_medio} caracteres")
@@ -271,16 +265,16 @@ col3.metric("Tamanho Máximo", f"{tamanho_max} caracteres")
 
 tamanho = st.select_slider(
     "Filtre pelo intervalo de tamanho do texto:",
-    options=sorted(df_fil['Tamanho_Texto'].unique()),
+    options=sorted(df_filtrado['Tamanho_Texto'].unique()),
     value=(tamanho_min, tamanho_max) # Valor inicial pega o mínimo e máximo
 )
 
 # Filtrar o DataFrame principal com base na seleção do slider
-mask = (
-    (df_fil['Tamanho_Texto'] >= tamanho[0]) &
-    (df_fil['Tamanho_Texto'] <= tamanho[1])
-)
-df_para_plotar = df_fil.loc[mask]
+df_para_plotar = df_filtrado[
+    (df_filtrado['Tamanho_Texto'] >= tamanho[0]) &
+    (df_filtrado['Tamanho_Texto'] <= tamanho[1])
+]
+
 
 if not df_para_plotar.empty:
     # O histograma é o gráfico ideal para ver a distribuição de uma variável numérica.
@@ -298,10 +292,10 @@ if not df_para_plotar.empty:
     )
 
     # Configurando o eixo X para exibir datas
-    #fig.update_xaxes(
-    #    tickformat='%d/%m',  
-    #    tickangle=-45        # Opcional: rotaciona os rótulos para não sobrepor
-    #)
+    fig.update_xaxes(
+        tickformat='%d/%m',  
+        tickangle=-45        # Opcional: rotaciona os rótulos para não sobrepor
+    )
     
     st.plotly_chart(fig, use_container_width=True)
 else:
@@ -340,8 +334,7 @@ else:
 # **WordCloud** com as palavras mais frequentes nos textos das descrições.
 st.subheader("📝 WordCloud - Palavras mais Frequentes nas Descrições")
 
-nltk.data.path.append('nltk_data')
-stopwords = set(stopwords.words('portuguese'))
+nltk.download('stopwords')
 
 # Obter a lista de stopwords em português
 stopwords_portugues = stopwords.words('portuguese')
