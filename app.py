@@ -13,8 +13,10 @@ import os
 import gdown
 
 # -- Utilizando o NLTK para stopwords em português --
-caminho = os.path.join(os.path.dirname(__file__), "nltk_data")
-nltk.data.path.append(caminho)
+# Aponta o NLTK para a pasta 'nltk_data/' no diretório raiz do projeto
+BASE_DIR = Path(__file__).parent
+NLTK_DATA_DIR = BASE_DIR / "nltk_data"
+nltk.data.path.append(str(NLTK_DATA_DIR))
 stop_words = set(stopwords.words("portuguese"))
 
 # --- Configurações da página ---
@@ -52,18 +54,15 @@ def load_series_temporais(path):
 # --- Funçao para carregar o mapa dos municipios
 @st.cache_data(show_spinner=False)
 def load_geodata(path_or_url, is_url=False):
-    """
-    Carrega dados geográficos de forma robusta, garantindo que o output
-    seja sempre um GeoDataFrame.
-    """
     if is_url:
-        output_path = 'downloaded_geodata.csv'
-        try:
-            gdown.download(path_or_url, output_path, quiet=False)
-            path = output_path
-        except Exception as e:
-            st.error(f"Falha ao baixar o arquivo geográfico da URL: {e}")
-            return gpd.GeoDataFrame() # Retorna GeoDataFrame vazio
+        output_path = 'gdf_municipios.csv'
+        if not output_path.exists():
+            try:
+                gdown.download(path_or_url, output_path, quiet=False)
+                path = output_path
+            except Exception as e:
+                st.error(f"Falha ao baixar o arquivo geográfico da URL: {e}")
+                return gpd.GeoDataFrame() # Retorna GeoDataFrame vazio
     else:
         path = path_or_url
 
@@ -363,7 +362,8 @@ novas_stopwords = ["empresa", "comprei", "loja", "não", "pra", "tive", "minha",
                    , "queria", "querer", "ser", "caso", "casa", "informar", "informou", "informe", "ano", "reais", "pagar"
                    , "sendo", "nota", "falta", "faltar", "data", "novamente", "poder", "poderia", "pessoa", "absurdo"
                    , "momento", "Editado", "Editar", "hora", "falar", "pq", "mal", "colocar", "coloquei", "mal", "mau", "bem"
-                   , "bom", "ficou", "fiquei", "total", "recebi", "recebeu"]
+                   , "bom", "ficou", "fiquei", "total", "recebi", "recebeu", "nada", "nenhuma", "nenhum", "nada", "tudo"
+                   , "falei", "falaram", "dizer", "dizendo", "dizem", "disseram", "tempo"]
 
 for palavra in novas_stopwords:
     stopwords_portugues.append(palavra)
