@@ -10,6 +10,7 @@ from nltk.corpus import stopwords as nltk_stopwords
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 from pathlib import Path
+from shapely import union_all
 
 # --- Configurações da página ---
 st.set_page_config(
@@ -338,7 +339,8 @@ novas_stopwords = ["empresa", "comprei", "loja", "não", "pra", "tive", "minha",
                    , "sendo", "nota", "falta", "faltar", "data", "novamente", "poder", "poderia", "pessoa", "absurdo"
                    , "momento", "Editado", "Editar", "hora", "falar", "pq", "mal", "colocar", "coloquei", "mal", "mau", "bem"
                    , "bom", "ficou", "fiquei", "total", "recebi", "recebeu", "nada", "nenhuma", "nenhum", "nada", "tudo"
-                   , "falei", "falaram", "dizer", "dizendo", "dizem", "disseram", "tempo"]
+                   , "falei", "falaram", "dizer", "dizendo", "dizem", "disseram", "tempo", "coisa", "coisas", "ocorrido"
+                   , "ocorreram"]
 
 #for palavra in novas_stopwords:
 #    stopwords.append(palavra)
@@ -428,7 +430,8 @@ if gdf_mapa.empty:
 
 # Centralizar mapa na área de interesse
 gdf_proj = gdf_mapa.to_crs(epsg=3857)  # projetado para cálculo espacial
-centro = gdf_proj.geometry.centroid.to_crs(epsg=4326).unary_union.centroid
+uniao = union_all(gdf_proj.geometry)
+centro = uniao.centroid
 mapa = folium.Map(location=[centro.y, centro.x], zoom_start=4.3)
 
 if estado != 'Todos':
