@@ -26,7 +26,7 @@ st.set_page_config(
 )
 
 # --- Função para carregar o GeoDataFrame das localidades ---
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def load_localidade_geodf(path):
     df = pd.read_csv(path, sep=',')
     # Converte texto -> lista -> shapely.geometry.Polygon
@@ -35,7 +35,7 @@ def load_localidade_geodf(path):
     return gdf
 
 # --- Função para carregar séries temporais ---
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def load_series_temporais(path):
     try:
         df = pd.read_csv(path, sep=',', index_col=0, parse_dates=True)
@@ -50,7 +50,7 @@ def load_series_temporais(path):
         return pd.DataFrame() # Retorna um DataFrame vazio
 
 # --- Funçao para carregar o mapa dos municipios
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def load_geodata(path_or_url, is_url=False):
     """
     Carrega dados geográficos de forma robusta, garantindo que o output
