@@ -44,19 +44,39 @@ def load_series_temporais(path):
         st.error(f"Erro ao carregar ou processar o arquivo de reclamações: {e}")
         return pd.DataFrame() # Retorna um DataFrame vazio
 
-# Forma para subir informações dos municipios
-GEODATA_URL = 'https://drive.google.com/uc?id=1a7lmiRSSzkiqgWV4lHnfXkivIK4iMUys' 
-
+# --- Funçao para carregar o mapa dos municipios
 @st.cache_data
-def load_geodata(url):
+def load_geodata(path_or_url, is_url=False):
     """
-    Função para carregar os dados geográficos dos municípios.
-    O cache evita o download repetido do arquivo de 434MB.
+    Carrega dados geográficos de forma robusta, garantindo que o output
+    seja sempre um GeoDataFrame.
     """
-    output = 'gdf_municipios.csv'
-    gdown.download(url, output, quiet=False)
-    gdf = gpd.read_file(output)
-    return gdf
+    if is_url:
+        output_path = 'downloaded_geodata.csv'
+        try:
+            gdown.download(path_or_url, output_path, quiet=False)
+            path = output_path
+        except Exception as e:
+            st.error(f"Falha ao baixar o arquivo geográfico da URL: {e}")
+            return gpd.GeoDataFrame() # Retorna GeoDataFrame vazio
+    else:
+        path = path_or_url
+
+    try:
+        df = pd.read_csv(path, sep=',')
+        # CORREÇÃO CRÍTICA: Garante a conversão para GeoDataFrame
+        gdf = gpd.GeoDataFrame(
+            df,
+            geometry=gpd.GeoSeries.from_wkt(df['POLYGON']),
+            crs="EPSG:4326"
+        )
+        return gdf
+    except FileNotFoundError:
+        st.error(f"Erro: O arquivo geográfico não foi encontrado em '{path}'. Verifique o caminho.")
+        return gpd.GeoDataFrame()
+    except Exception as e:
+        st.error(f"Erro ao carregar ou processar dados geográficos: {e}")
+        return gpd.GeoDataFrame()
 
 
 # --- Carregamento dos dados ---
@@ -64,10 +84,12 @@ def load_geodata(url):
 # gdf_municipios = load_localidade_geodf("..\datasets\gdf_municipios.csv")
 # df_reclamacoes = load_series_temporais('..\datasets\RECLAMEAQUI_CARREFUOR_CLS.csv')
 
-# Alterado para rodar no stramlit Deploy
-gdf_estados = load_localidade_geodf("./datasets/gdf_estados.csv")
+# --- Carregamento dos dados ---
+GEODATA_MUNICIPIOS_URL = 'https://drive.google.com/uc?id=1a7lmiRSSzkiqgWV4lHnfXkivIK4iMUys'
+
+gdf_estados = load_geodata("./datasets/gdf_estados.csv")
+gdf_municipios = load_geodata(GEODATA_MUNICIPIOS_URL, is_url=True)
 df_reclamacoes = load_series_temporais('./datasets/RECLAMEAQUI_CARREFUOR_CLS.csv')
-gdf_municipios = load_geodata(GEODATA_URL)
 
 
 # --- Título do Dashboard ----
@@ -335,7 +357,8 @@ novas_stopwords = ["empresa", "comprei", "loja", "não", "pra", "tive", "minha",
                    , "voltar", "fazer", "Além", "fazendo", "favor", "deram", "chegou", "chegar", "ir", "vir", "iria", "quero"
                    , "queria", "querer", "ser", "caso", "casa", "informar", "informou", "informe", "ano", "reais", "pagar"
                    , "sendo", "nota", "falta", "faltar", "data", "novamente", "poder", "poderia", "pessoa", "absurdo"
-                   , "momento", "Editado", "Editar", "hora", "falar", "pq"]
+                   , "momento", "Editado", "Editar", "hora", "falar", "pq", "mal", "colocar", "coloquei", "mal", "mau", "bem"
+                   , "bom", "ficou", "fiquei", "total", "recebi", "recebeu"]
 
 for palavra in novas_stopwords:
     stopwords_portugues.append(palavra)
@@ -396,9 +419,7 @@ if estado != 'Todos':
     gdf_municipios = gdf_municipios[gdf_municipios["NM_UF"] == estado]
 
     gdf_municipios_proj = gdf_municipios.to_crs(epsg=3857)
-    # Centralizar o mapa na área de interesse
-    mapa = folium.Map(location=[gdf_municipios_proj.geometry.centroid.y.mean(), gdf_municipios_proj.geometry.centroid.x.mean()], zoom_start=6.3)
-
+    
     # Agrupando informações dos estados
     df_mapa = df_mapa.groupby(['MUNICIPIO']).size().reset_index(name='Qtd_Reclamacoes')
 
@@ -407,6 +428,11 @@ if estado != 'Todos':
 
     # Substituindo valores nulos
     gdf_final['Qtd_Reclamacoes'] = gdf_final['Qtd_Reclamacoes'].fillna(0).astype(int)
+
+    # Centraliza o mapa
+    lat_center = gdf_final.geometry.centroid.y.mean()
+    lon_center = gdf_final.geometry.centroid.x.mean()
+    map_view = folium.Map(location=[lat_center, lon_center], zoom_start=6)
 
     # Adicionando as informações no mapa
     choropleth = folium.Choropleth(
@@ -480,6 +506,6 @@ else:
     tooltip.add_to(choropleth.geojson)
 
     
-folium_static(mapa, width=1000, height=600)
+st_folium(mapa, width=1000, height=600)
 
 ### Fim do código
