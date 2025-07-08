@@ -48,6 +48,20 @@ def load_data_from_url(url, file_name, is_geo=False):
     except Exception as e:
         st.error(f"Falha ao baixar ou carregar o arquivo '{file_name}': {e}")
         return gpd.GeoDataFrame() if is_geo else pd.DataFrame()
+    
+# --- Função para carregar séries temporais ---
+@st.cache_data
+def load_series_temporais(df):
+    try:
+        # Otimização: especifique o formato para pd.to_datetime
+        df["TEMPO"] = pd.to_datetime(df['TEMPO'], format='%d-%m-%Y', errors='coerce')
+        return df
+    except FileNotFoundError:
+        st.error(f"Erro: O arquivo de reclamações não foi encontrado em {df}.")
+        return pd.DataFrame() # Retorna um DataFrame vazio para evitar erros posteriores
+    except Exception as e:
+        st.error(f"Erro ao carregar ou processar o arquivo de reclamações: {e}")
+        return pd.DataFrame() # Retorna um DataFrame vazio
 
 
 # --- URLs dos seus arquivos de dados ---
@@ -60,7 +74,7 @@ RECLAMACOES_URL = 'https://drive.google.com/uc?id=1W771udGNKSk4HTTuSyw77rWn3Mw3H
 gdf_estados = load_data_from_url(GEODATA_ESTADOS_URL, "gdf_estados.csv", is_geo=True)
 gdf_municipios = load_data_from_url(GEODATA_MUNICIPIOS_URL, "gdf_municipios.csv", is_geo=True)
 df_reclamacoes = load_data_from_url(RECLAMACOES_URL, "reclamacoes.csv")
-
+df_reclamacoes = load_series_temporais(df_reclamacoes)
 
 # --- Título do Dashboard ----
 st.title("✅ Dashboard de Análise de Reclamações")
