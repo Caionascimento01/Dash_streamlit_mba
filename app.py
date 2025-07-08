@@ -255,17 +255,32 @@ st.subheader("📏 Distribuição do Tamanho dos Textos das Reclamações")
 df_fil = df_filtrado.copy()
 df_fil['Tamanho_Texto'] = df_fil['DESCRICAO'].fillna("").str.len()
 
-t_min, t_max = int(df_fil['Tamanho_Texto'].min()), int(df_fil['Tamanho_Texto'].max())
+# Agrupar por tamanho do texto e contar as reclamações
+df_tamanho_texto = df_fil.groupby('Tamanho_Texto').size().reset_index(name='Qtd_Reclamacoes')
 
+# Metricas gerais
 st.markdown("##### Métricas Gerais")
 col1, col2, col3 = st.columns(3)
-col1.metric("Tamanho Mínimo", f"{t_min} caracteres")
-col2.metric("Tamanho Médio", f"{int(df_fil['Tamanho_Texto'].mean())} caracteres")
-col3.metric("Tamanho Máximo", f"{t_max} caracteres")
+tamanho_medio = int(df_fil['Tamanho_Texto'].mean())
+tamanho_max = int(df_fil['Tamanho_Texto'].max())
+tamanho_min = int(df_fil['Tamanho_Texto'].min())
 
-tamanho = st.slider("Filtre pelo intervalo de tamanho:", t_min, t_max, (t_min, t_max), step=(t_max-t_min)//50 or 1)
+col1.metric("Tamanho Mínimo", f"{tamanho_min} caracteres")
+col2.metric("Tamanho Médio", f"{tamanho_medio} caracteres")
+col3.metric("Tamanho Máximo", f"{tamanho_max} caracteres")
 
-df_plot = df_fil[(df_fil['Tamanho_Texto'] >= tamanho[0]) & (df_fil['Tamanho_Texto'] <= tamanho[1])]
+tamanho = st.select_slider(
+    "Filtre pelo intervalo de tamanho do texto:",
+    options=sorted(df_fil['Tamanho_Texto'].unique()),
+    value=(tamanho_min, tamanho_max) # Valor inicial pega o mínimo e máximo
+)
+
+# Filtrar o DataFrame principal com base na seleção do slider
+mask = (
+    (df_fil['Tamanho_Texto'] >= tamanho[0]) &
+    (df_fil['Tamanho_Texto'] <= tamanho[1])
+)
+df_para_plotar = df_fil.loc[mask]
 
 if not df_para_plotar.empty:
     # O histograma é o gráfico ideal para ver a distribuição de uma variável numérica.
