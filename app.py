@@ -46,7 +46,7 @@ def load_localidade_geodf(path):
 @st.cache_data(show_spinner=False)
 def load_series_temporais(path):
     try:
-        df = pd.read_csv(path, sep=',', index_col=0, parse_dates=True)
+        df = pd.read_csv(path, sep=',', index_col=0, parse_dates=['TEMPO'], dayfirst=True)
         # Otimização: especifique o formato para pd.to_datetime
         df["TEMPO"] = pd.to_datetime(df['TEMPO'], format='%d-%m-%Y', errors='coerce')
         return df
