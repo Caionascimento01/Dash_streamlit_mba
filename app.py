@@ -417,16 +417,19 @@ else:
         gdf_mapa = gdf_municipios_sudeste.copy()
     elif estado in ["PARANA", "RIO GRANDE DO SUL", "SANTA CATARINA"]:
         gdf_mapa = gdf_municipios_sul.copy()
+    else:
+        st.error("Estado selecionado não pertence a nenhuma região reconhecida.")
+        st.stop()
 
 # Verifica se o DataFrame df_mapa está vazio
 if gdf_mapa.empty:
     st.warning("Nenhuma reclamação encontrada no estado selecionado. Por favor, ajuste os filtros.")
     st.stop()  # Interrompe a execução do restante do código
 
-gdf_coord = gdf_mapa.to_crs(epsg=4326)  # Converte para o sistema de coordenadas geográficas (WGS84)
-
-# Centralizar o mapa na área de interesse
-mapa = folium.Map(location=[gdf_coord.geometry.centroid.y.mean(), gdf_coord.geometry.centroid.x.mean()], zoom_start=4.3)
+# Centralizar mapa na área de interesse
+gdf_proj = gdf_mapa.to_crs(epsg=3857)  # projetado para cálculo espacial
+centro = gdf_proj.geometry.centroid.to_crs(epsg=4326).unary_union.centroid
+mapa = folium.Map(location=[centro.y, centro.x], zoom_start=4.3)
 
 if estado != 'Todos':
     df_mapa = df_mapa[df_mapa['NOME_UF'] == estado]
@@ -440,6 +443,9 @@ if estado != 'Todos':
 
     # Substituindo valores nulos
     gdf_final['Qtd_Reclamacoes'] = gdf_final['Qtd_Reclamacoes'].fillna(0).astype(int)
+
+    # Simplificando a geometria para melhorar o desempenho do mapa
+    gdf_final['geometry'] = gdf_final['geometry'].simplify(0.01, preserve_topology=True)
 
     # Adicionando as informações no mapa
     choropleth = folium.Choropleth(
