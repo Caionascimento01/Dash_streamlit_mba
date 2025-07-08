@@ -397,6 +397,8 @@ if ano != 'Todos':
 else:
     df_mapa = df_filtrado.copy()
 
+# Centralizar o mapa na área de interesse
+mapa = folium.Map(location=[gdf_estados.geometry.centroid.y.mean(), gdf_estados.geometry.centroid.x.mean()], zoom_start=4.3)
 
 if estado != 'Todos':
     df_mapa = df_mapa[df_mapa['NOME_UF'] == estado]
@@ -412,11 +414,6 @@ if estado != 'Todos':
 
     # Substituindo valores nulos
     gdf_final['Qtd_Reclamacoes'] = gdf_final['Qtd_Reclamacoes'].fillna(0).astype(int)
-
-    # Centraliza o mapa
-    lat_center = gdf_final.geometry.centroid.y.mean()
-    lon_center = gdf_final.geometry.centroid.x.mean()
-    mapa = folium.Map(location=[lat_center, lon_center], zoom_start=6)
 
     # Adicionando as informações no mapa
     choropleth = folium.Choropleth(
@@ -447,9 +444,6 @@ if estado != 'Todos':
     tooltip.add_to(choropleth.geojson)
 
 else:
-
-    # Centralizar o mapa na área de interesse
-    mapa = folium.Map(location=[gdf_estados.geometry.centroid.y.mean(), gdf_estados.geometry.centroid.x.mean()], zoom_start=4.3)
 
     # Agrupando informações dos estados
     df_mapa = df_mapa.groupby(['NOME_UF']).size().reset_index(name='Qtd_Reclamacoes')
