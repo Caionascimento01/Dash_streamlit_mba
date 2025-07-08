@@ -42,7 +42,7 @@ def load_data_from_url(url, file_name, is_geo=False):
             )
             return gdf
         else:
-            df = pd.read_csv(output_path, sep=',', index_col=0, parse_dates=True, dayfirst=True)
+            df = pd.read_csv(output_path, sep=',', index_col=0, parse_dates=True)
             return df
             
     except Exception as e:
