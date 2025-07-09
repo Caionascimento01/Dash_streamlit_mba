@@ -46,6 +46,8 @@ def load_localidade_geodf(path):
     gdf = gpd.GeoDataFrame(df, geometry='geometry', crs="EPSG:4326")
     return gdf
 
+# --- Sidebar com seletores ---
+st.sidebar.header("Filtros 🔍")
 
 # Seletor de localidade
 st.sidebar.header("Selecione a localidade")

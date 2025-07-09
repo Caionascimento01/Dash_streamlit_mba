@@ -77,7 +77,7 @@ st.title("✅ Dashboard de Análise de Reclamações")
 st.markdown("---")
 
 # --- Sidebar com seletores ---
-st.sidebar.title("Filtros 🔍")
+st.sidebar.header("Filtros 🔍")
 
 # Seletor de periodo
 st.sidebar.header("Selecione o período")
