@@ -76,7 +76,7 @@ pages = {
         st.Page("app.py", title="Home page", icon="🏠"),
     ],
     "Mapa": [
-        st.Page("mapa.py", title="Mapa de Reclamações", icon="🗺️"),
+        st.Page("pages/mapa.py", title="Mapa de Reclamações", icon="🗺️"),
     ],
 }
 
