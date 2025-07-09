@@ -74,6 +74,7 @@ if col2.button("🗺️ Mapa"):
 
 # --- Título do Dashboard ----
 st.title("✅ Dashboard de Análise de Reclamações")
+st.subheader("Empresa: Carrefour")
 st.markdown("---")
 
 # --- Sidebar com seletores ---
