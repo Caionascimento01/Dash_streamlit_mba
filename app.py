@@ -68,7 +68,7 @@ st.session_state['gdf_estados'] = gdf_estados
 
 pages = {
     "Home": st.Page("app.py", title="Home page", icon="🏠"),
-    "Mapa": st.Page("pages/mapa.py", title="Mapa de Reclamações", icon="🗺️"),
+    "Mapa": st.Page("mapa.py", title="Mapa de Reclamações", icon="🗺️"),
 }
 
 pg = st.navigation(pages, position="top")
