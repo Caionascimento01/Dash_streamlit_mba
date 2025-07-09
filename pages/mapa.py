@@ -8,17 +8,18 @@ import folium
 from streamlit_folium import st_folium
 from pathlib import Path
 
-st.set_page_config(page_title="Mapa de Reclamações", layout="wide")
-st.title("Mapa de Reclamações por Estado / Município")
-
 if st.button("🏠 Home"):
     st.switch_page("app.py")
 if st.button("🗺️ Mapa"):
     st.switch_page("pages/mapa.py")
 
 
+st.set_page_config(page_title="Mapa de Reclamações", layout="wide")
+st.title("Mapa de Reclamações por Estado / Município")
+
 df_filtrado = st.session_state['df_filtrado']
-estado = st.session_state.get('estado', 'Todos')
+gdf_estados = st.session_state['gdf_estados']
+estado = st.session_state.get('estado')
 
 # --- Função para carregar o GeoDataFrame das localidades ---
 @st.cache_data(ttl=3600)
@@ -48,6 +49,12 @@ gdf_municipios_nordeste = load_localidade_geodf("./datasets/gdf_municipios_norde
 gdf_municipios_centro_oeste = load_localidade_geodf("./datasets/gdf_municipios_centro_oeste.csv")
 gdf_municipios_sudeste = load_localidade_geodf("./datasets/gdf_municipios_sudeste.csv")
 gdf_municipios_sul = load_localidade_geodf("./datasets/gdf_municipios_sul.csv")
+
+# Seletor de localidade
+st.sidebar.header("Selecione a localidade")
+opcoes_estados = sorted(gdf_estados['NM_UF'].unique())
+opcoes_completas = ['Todos'] + opcoes_estados
+estado = st.sidebar.selectbox("Estado", options=opcoes_completas)
 
 # **Mapa do Brasil com heatmap** mostrando a quantidade de reclamações por **ano**, com granularidade por **estado ou município**.
 #  > O mapa **deve conter um seletor para o ano** que será visualizado.

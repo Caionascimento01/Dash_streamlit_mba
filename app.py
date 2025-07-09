@@ -64,16 +64,17 @@ def load_series_temporais(path):
 df_reclamacoes = load_series_temporais('./datasets/RECLAMEAQUI_CARREFUOR_CLS.csv')
 gdf_estados = load_localidade_geodf("./datasets/gdf_estados.csv")
 
-st.session_state['estado'] = gdf_estados
-
-# --- Título do Dashboard ----
-st.title("✅ Dashboard de Análise de Reclamações")
-st.markdown("---")
+st.session_state['gdf_estados'] = gdf_estados
 
 if st.button("🏠 Home"):
     st.switch_page("app.py")
 if st.button("🗺️ Mapa"):
     st.switch_page("pages/mapa.py")
+
+
+# --- Título do Dashboard ----
+st.title("✅ Dashboard de Análise de Reclamações")
+st.markdown("---")
 
 # --- Sidebar com seletores ---
 st.sidebar.title("Filtros 🔍")
