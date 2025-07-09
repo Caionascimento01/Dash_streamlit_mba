@@ -66,12 +66,11 @@ gdf_estados = load_localidade_geodf("./datasets/gdf_estados.csv")
 
 st.session_state['gdf_estados'] = gdf_estados
 
-pages = {
-    "Home": st.Page("app.py", title="Home page", icon="🏠"),
-    "Mapa": st.Page("mapa.py", title="Mapa de Reclamações", icon="🗺️"),
-}
+# Defina as páginas
+home_page = st.Page("app.py", title="Home", icon="🏠", default=True)
+map_page = st.Page("mapa.py", title="Mapa de Reclamações", icon="🗺️")
 
-pg = st.navigation(pages, position="top")
+pg = st.navigation([home_page, map_page], position="top")
 pg.run()
 
 # --- Título do Dashboard ----
