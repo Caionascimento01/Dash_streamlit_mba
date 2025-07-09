@@ -258,8 +258,16 @@ if pd.isna(media):
     tamanho_medio = 0
 else:
     tamanho_medio = int(media)
-tamanho_max = int(df_fil['Tamanho_Texto'].fillna(0).max())
-tamanho_min = int(df_fil['Tamanho_Texto'].fillna(0).min())
+min = df_fil['Tamanho_Texto'].min()
+if pd.isna(min):
+    tamanho_min = 0
+else:
+    tamanho_min = int(min)
+max = df_fil['Tamanho_Texto'].max()
+if pd.isna(max):
+    tamanho_max = 0
+else:
+    tamanho_max = int(max)
 
 col1.metric("Tamanho Mínimo", f"{tamanho_min} caracteres")
 col2.metric("Tamanho Médio", f"{tamanho_medio} caracteres")
