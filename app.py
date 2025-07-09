@@ -93,7 +93,8 @@ opcoes_estados = sorted(gdf_estados['NM_UF'].unique())
 opcoes_completas = ['Todos'] + opcoes_estados
 estado = st.sidebar.selectbox("Estado", options=opcoes_completas)
 
-st.session_state['ano_selecionado'] = estado
+# se quiser compartilhar também filtros:
+st.session_state['estado'] = estado
 
 # Seletor de situação
 st.sidebar.header("Selecione a situação")
@@ -112,6 +113,8 @@ if situacao_selecionada:
     mask &= df_reclamacoes["STATUS"].isin(situacao_selecionada)
 
 df_filtrado = df_reclamacoes.loc[mask]
+
+st.session_state['df_filtrado'] = df_filtrado
 
 # --- Gráficos temporais por reclamações ---
 st.subheader(f"🔢 Reclamações por situação")

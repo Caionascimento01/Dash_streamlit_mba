@@ -11,6 +11,9 @@ from pathlib import Path
 st.set_page_config(page_title="Mapa de Reclamações", layout="wide")
 st.title("Mapa de Reclamações por Estado / Município")
 
+df_filtrado = st.session_state['df_filtrado']
+estado = st.session_state.get('estado', 'Todos')
+
 # --- Função para carregar o GeoDataFrame das localidades ---
 @st.cache_data(ttl=3600)
 def load_localidade_geodf(path):
