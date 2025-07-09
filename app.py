@@ -18,6 +18,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# --- Carregar o GeoDataFrame das localidades ---
 @st.cache_data(ttl=3600)
 def load_localidade_geodf(path):
     df = pd.read_csv(path, sep=',')  # ajuste o separador se necessário
@@ -64,14 +65,12 @@ def load_series_temporais(path):
 df_reclamacoes = load_series_temporais('./datasets/RECLAMEAQUI_CARREFUOR_CLS.csv')
 gdf_estados = load_localidade_geodf("./datasets/gdf_estados.csv")
 
-st.session_state['gdf_estados'] = gdf_estados
-
-col1, col2 = st.columns([1,1])
+# Adicionando botões de navegação
+col1, col2 = st.columns([1,4])
 if col1.button("🏠 Home"):
     st.switch_page("app.py")
 if col2.button("🗺️ Mapa"):
     st.switch_page("pages/mapa.py")
-
 
 # --- Título do Dashboard ----
 st.title("✅ Dashboard de Análise de Reclamações")
@@ -102,9 +101,6 @@ opcoes_estados = sorted(gdf_estados['NM_UF'].unique())
 opcoes_completas = ['Todos'] + opcoes_estados
 estado = st.sidebar.selectbox("Estado", options=opcoes_completas)
 
-# se quiser compartilhar também filtros:
-st.session_state['estado'] = estado
-
 # Seletor de situação
 st.sidebar.header("Selecione a situação")
 situacao_selecionada = st.sidebar.multiselect("Situação", options=sorted(df_reclamacoes['STATUS'].unique().tolist()))
@@ -123,9 +119,11 @@ if situacao_selecionada:
 
 df_filtrado = df_reclamacoes.loc[mask]
 
+# -- Tornando os dados disponíveis para outras páginas --
+st.session_state['gdf_estados'] = gdf_estados
 st.session_state['df_filtrado'] = df_filtrado
 
-# --- Gráficos temporais por reclamações ---
+# --- Métricas gerais ---
 st.subheader(f"🔢 Reclamações por situação")
 col1, col2, col3, col4, col5, col6 = st.columns(6)
 
@@ -167,7 +165,7 @@ with col6:
         total_reclamacoes = 0 # Define como 0 se for NaN ou None
     container.metric("Total", int(total_reclamacoes)) # Linha 153
 
-# --- Gráfico de Linha Interativo ---
+# --- Gráficos temporais por reclamações ---
 # Agrupar por DATA e STATUS, contando quantas reclamações existem
 df_grouped = df_filtrado.groupby([df_filtrado['TEMPO'].dt.date, 'STATUS']).size().reset_index(name='quantidade')
 
@@ -183,9 +181,9 @@ fig = px.line(
     df_pivot,
     title='📈 Reclamações por situação - Temporal',
     labels={
-        "DATA": "Data Reclamação",      # Renomeia o eixo X
-        "value": "Nº de Reclamações",      # Renomeia o eixo Y
-        "STATUS": "Situação"               # Renomeia o título da legenda e das séries no hover
+        "DATA": "Data Reclamação",
+        "value": "Nº de Reclamações",
+        "STATUS": "Situação"
     }
 )
 
@@ -193,9 +191,9 @@ fig = px.line(
 fig.update_layout(
     legend=dict(
         title="Situação",
-        orientation="h", # 'h' para horizontal
+        orientation="h",
         yanchor="top",
-        y=1.1, # Coloca um pouco abaixo do gráfico
+        y=1.1,
         xanchor="right",
         x=0.5
     )
@@ -204,7 +202,7 @@ fig.update_layout(
 # Configurando o eixo X para exibir datas
 fig.update_xaxes(
     tickformat='%d/%m',  
-    tickangle=-45        # Opcional: rotaciona os rótulos para não sobrepor
+    tickangle=-45
 )
 
 # Exibir o gráfico de linha interativo
@@ -244,7 +242,6 @@ else:
 st.subheader("📏 Distribuição do Tamanho dos Textos das Reclamações")
 
 # Calcular o tamanho dos textos
-# df_filtrado['Tamanho_Texto'] = df_filtrado['DESCRICAO'].apply(lambda x: len(str(x)) if pd.notnull(x) else 0)
 df_fil = df_filtrado.copy()
 df_fil['Tamanho_Texto'] = df_fil['DESCRICAO'].fillna("").str.len()
 
@@ -301,12 +298,6 @@ if not df_para_plotar.empty:
         bargap=0.1, # Espaço entre as barras
         yaxis_title="Nº de Reclamações" # Título do eixo Y
     )
-
-    # Configurando o eixo X para exibir datas
-    #fig.update_xaxes(
-    #    tickformat='%d/%m',  
-    #    tickangle=-45        # Opcional: rotaciona os rótulos para não sobrepor
-    #)
     
     st.plotly_chart(fig, use_container_width=True)
 else:
@@ -320,22 +311,21 @@ if not df_fil.empty:
         df_fil,
         x='TEMPO',
         y='Tamanho_Texto',
-        color='STATUS',  # Usa a coluna 'STATUS' para colorir os pontos
+        color='STATUS', 
         title='Cada ponto representa uma reclamação individual. Use o filtro para analisar por status',
         labels={'Tamanho_Texto': 'Tamanho do Texto (caracteres)', 'TEMPO': 'Data da Reclamação'},
-        # over_data=['DESCRICAO'], # Mostra a descrição no hover
     )
 
     # Customizações visuais
     fig.update_traces(
-        marker=dict(size=5, opacity=0.7), # Deixa os pontos menores e um pouco transparentes
+        marker=dict(size=5, opacity=0.7),
         selector=dict(mode='markers')
     )
 
     # Configurando o eixo X para exibir datas
     fig.update_xaxes(
-        tickformat='%d/%m/%Y',  
-        tickangle=-45        # Opcional: rotaciona os rótulos para não sobrepor
+        tickformat='%d/%m/%Y',
+        tickangle=-45
     )
     
     st.plotly_chart(fig, use_container_width=True)
@@ -348,13 +338,6 @@ st.subheader("📝 WordCloud - Palavras mais Frequentes nas Descrições")
 # -- Utilizando o NLTK para stopwords em português --
 # Aponta para o diretório dentro do repositório
 nltk.data.path.append(str(Path(__file__).parent / "nltk_data"))
-
-# 3) agora tente carregar as stopwords
-#try:
-#    stopwords = set(stopwords.words("portuguese"))
-#except LookupError:
-#    st.warning("Stopwords do NLTK não encontradas. Usando lista vazia.")
-#    stopwords = set()
 
 novas_stopwords = ["empresa", "comprei", "loja", "não", "pra", "tive", "minha", "nao", "apenas"
                    , "ter", "bem", "bom", "muito", "pouco", "mais", "menos", "ainda", "já", "agora", "hoje"
@@ -373,11 +356,7 @@ novas_stopwords = ["empresa", "comprei", "loja", "não", "pra", "tive", "minha",
                    , "ocorreram", "simples", "simplesmente", "problemas", "problema", "reclamação", "reclamações", "ver"
                    , "mim", ".", ","]
 
-#for palavra in novas_stopwords:
-#    stopwords.append(palavra)
-
-# Agora isso deve funcionar sem precisar baixar
-#stopwords = set(stopwords.words("portuguese"))
+# Carregar as stopwords do NLTK e adicionar as novas stopwords
 stop_pt = set(nltk_stopwords.words("portuguese")) | set(novas_stopwords)
 
 # Concatenar todas as descrições em uma única string
@@ -403,7 +382,7 @@ if texto and not texto.isspace():
         # Plotar a WordCloud
         fig, ax = plt.subplots(figsize=(10, 5))
         ax.imshow(wordcloud, interpolation='bilinear')
-        ax.axis('off')  # Remove os eixos
+        ax.axis('off') 
         st.pyplot(fig)
         
     except Exception as e:

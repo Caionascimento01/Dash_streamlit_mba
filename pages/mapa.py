@@ -9,23 +9,25 @@ from streamlit_folium import st_folium
 from pathlib import Path
 from folium.plugins import StripePattern
 
+# Adicionando botões de navegação
 col1, col2 = st.columns([1,1])
 if col1.button("🏠 Home"):
     st.switch_page("app.py")
 if col2.button("🗺️ Mapa"):
     st.switch_page("pages/mapa.py")
 
-
+# Configurações da página
 st.set_page_config(page_title="Mapa de Reclamações", layout="wide")
 st.title("🗺️ Mapa de calor - Reclamações por Estado / Município")
 
+# Carregar os dados do DataFrame filtrado e do GeoDataFrame dos estados
 df_filtrado = st.session_state['df_filtrado']
 gdf_estados = st.session_state.get('gdf_estados')
 
 # --- Função para carregar o GeoDataFrame das localidades ---
 @st.cache_data(ttl=3600)
 def load_localidade_geodf(path):
-    df = pd.read_csv(path, sep=',')  # ajuste o separador se necessário
+    df = pd.read_csv(path, sep=',') 
 
     if 'POLYGON' not in df.columns:
         st.error(f"Coluna 'POLYGON' não encontrada. Colunas disponíveis: {df.columns.tolist()}")
@@ -51,11 +53,13 @@ opcoes_estados = sorted(gdf_estados['NM_UF'].unique())
 opcoes_completas = ['Todos'] + opcoes_estados
 estado = st.sidebar.selectbox("Estado", options=opcoes_completas)
 
+# Seletor de ano
 st.sidebar.header("Selecione o ano")
 opcoes_anos = sorted(df_filtrado['ANO'].unique())
 todas_opcoes = ['Todos'] + opcoes_anos
 ano = st.sidebar.selectbox("Ano", options=todas_opcoes)
 
+# Filtrar o DataFrame com base no ano selecionado
 if ano != 'Todos':
     df_mapa = df_filtrado[df_filtrado['ANO'] == ano]
 else:
@@ -96,9 +100,11 @@ else:
 # Verifica se o DataFrame df_mapa está vazio
 if gdf_mapa.empty:
     st.warning("Nenhuma reclamação encontrada no estado selecionado. Por favor, ajuste os filtros.")
-    st.stop()  # Interrompe a execução do restante do código
+    st.stop() 
 
 if estado != 'Todos':
+
+    # Filtrar o DataFrame df_mapa para o estado selecionado
     df_mapa = df_mapa[df_mapa['NOME_UF'] == estado]
     gdf_municipios = gdf_mapa[gdf_mapa["NM_UF"] == estado]
 
@@ -114,8 +120,8 @@ if estado != 'Todos':
     # Unificando com os dados de localização de cada estado
     gdf_final = gdf_municipios.merge(df_mapa, left_on='NM_MUN', right_on='MUNICIPIO', how='left')
 
+    # Separando as colunas necessárias
     cols = ['MUNICIPIO', 'NM_MUN', 'AREA_KM2', 'Qtd_Reclamacoes', 'geometry']
-
     gdf_final = gdf_final[cols]
 
     # Simplificando a geometria para melhorar o desempenho do mapa
@@ -127,14 +133,14 @@ if estado != 'Todos':
         name='choropleth',
         data=gdf_final,
         columns=['MUNICIPIO', 'Qtd_Reclamacoes'],
-        key_on='feature.properties.NM_MUN', # Chave no GeoJSON para conectar os dados
-        fill_color='YlOrRd', # Nome do colormap (escala de cores)
+        key_on='feature.properties.NM_MUN', 
+        fill_color='YlOrRd', 
         nan_fill_color='grey',
         nan_fill_opacity=0.4,
         fill_opacity=0.7,
         line_opacity=0.2,
         legend_name='Quantidade de Reclamações',
-        highlight=True, # Destaca a área ao passar o mouse
+        highlight=True, 
     )
 
     choropleth.add_to(mapa)
@@ -160,8 +166,8 @@ else:
     # Unificando com os dados de localização de cada estado
     gdf_final = gdf_estados.merge(df_mapa, left_on='NM_UF', right_on='NOME_UF', how='left')
 
+    # Separando as colunas necessárias
     cols = ['NOME_UF', 'NM_UF', 'AREA_KM2', 'Qtd_Reclamacoes', 'geometry']
-
     gdf_final = gdf_final[cols]
 
     # Centralizar o mapa na área de interesse
