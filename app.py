@@ -504,6 +504,9 @@ else:
     # Substituindo valores nulos
     gdf_final['Qtd_Reclamacoes'] = gdf_final['Qtd_Reclamacoes'].fillna(0).astype(int)
 
+    # Simplificando a geometria para melhorar o desempenho do mapa
+    gdf_final['geometry'] = gdf_final['geometry'].simplify(0.01, preserve_topology=True)
+
     # Adicionando as informações no mapa
     choropleth = folium.Choropleth(
         geo_data=gdf_final,
