@@ -157,7 +157,7 @@ else:
     gdf_final = gdf_final[cols]
 
     # Centralizar o mapa na área de interesse
-    mapa = folium.Map(location=[gdf_final.geometry.centroid.y.mean(), gdf_final.geometry.centroid.x.mean()], zoom_start=6.3)
+    mapa = folium.Map(location=[gdf_final.geometry.centroid.y.mean(), gdf_final.geometry.centroid.x.mean()], zoom_start=4.3)
 
     # Simplificando a geometria para melhorar o desempenho do mapa
     gdf_final['geometry'] = gdf_final['geometry'].simplify(0.01, preserve_topology=True)
