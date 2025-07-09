@@ -159,7 +159,7 @@ else:
     # Unificando com os dados de localização de cada estado
     gdf_final = gdf_estados.merge(df_mapa, left_on='NM_UF', right_on='NOME_UF', how='left')
 
-    cols = ['NM_UF', 'AREA_KM2', 'Qtd_Reclamacoes', 'geometry']
+    cols = ['NOME_UF', 'NM_UF', 'AREA_KM2', 'Qtd_Reclamacoes', 'geometry']
 
     gdf_final = gdf_final[cols]
 
