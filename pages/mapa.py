@@ -18,8 +18,9 @@ st.set_page_config(page_title="Mapa de Reclamações", layout="wide")
 st.title("Mapa de Reclamações por Estado / Município")
 
 df_filtrado = st.session_state['df_filtrado']
-gdf_estados = st.session_state['gdf_estados']
-estado = st.session_state.get('estado')
+estado = st.session_state.get('estado', 'Todos')
+ano = st.session_state.get('ano', 'Todos')
+gdf_estados = st.session_state.get('gdf_estados')
 
 # --- Função para carregar o GeoDataFrame das localidades ---
 @st.cache_data(ttl=3600)

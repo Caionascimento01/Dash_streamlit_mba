@@ -71,6 +71,17 @@ if st.button("🏠 Home"):
 if st.button("🗺️ Mapa"):
     st.switch_page("pages/mapa.py")
 
+pages = {
+    "Home": [
+        st.Page("app.py", title="Home page", icon="🏠"),
+    ],
+    "Mapa": [
+        st.Page("mapa.py", title="Mapa de Reclamações", icon="🗺️"),
+    ],
+}
+
+pg = st.navigation(pages, position="top")
+pg.run()
 
 # --- Título do Dashboard ----
 st.title("✅ Dashboard de Análise de Reclamações")
