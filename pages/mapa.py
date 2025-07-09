@@ -126,7 +126,7 @@ if estado != 'Todos':
         columns=['MUNICIPIO', 'Qtd_Reclamacoes'],
         key_on='feature.properties.NM_MUN', # Chave no GeoJSON para conectar os dados
         fill_color='YlOrRd', # Nome do colormap (escala de cores)
-        nan_fill_color='White',
+        nan_fill_color='grey',
         nan_fill_opacity=0.4,
         fill_opacity=0.7,
         line_opacity=0.2,
@@ -172,10 +172,11 @@ else:
         columns=['NOME_UF', 'Qtd_Reclamacoes'],
         key_on='feature.properties.NM_UF', # Chave no GeoJSON para conectar os dados
         fill_color='YlOrRd', # Nome do colormap (escala de cores)
-        nan_fill_color='White',
+        nan_fill_color='grey',
         nan_fill_opacity=0.4,
         fill_opacity=0.7,
         line_opacity=0.2,
+        StripePattern=StripePattern(angle=45, color='grey', space_color='white', weight=2, opacity=0.6),
         legend_name='Quantidade de Reclamações',
         bins=[1, 20, 40, 80, 160, 320, 660],
         highlight=True, # Destaca a área ao passar o mouse
