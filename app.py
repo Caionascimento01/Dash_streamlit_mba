@@ -4,13 +4,13 @@ import geopandas as gpd
 from shapely.geometry import Polygon
 import plotly.express as px
 import folium
+import ast
 from streamlit_folium import st_folium
 import nltk
 from nltk.corpus import stopwords as nltk_stopwords
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 from pathlib import Path
-from shapely import union_all
 
 # --- Configurações da página ---
 st.set_page_config(
@@ -23,10 +23,13 @@ st.set_page_config(
 # --- Função para carregar o GeoDataFrame das localidades ---
 @st.cache_data(ttl=3600)
 def load_localidade_geodf(path):
-    df = pd.read_csv(path, sep=',')
+    df = pd.read_csv(path, sep=';')
+
     # Converte texto -> lista -> shapely.geometry.Polygon
-    df['coords'] = gpd.GeoSeries.from_wkt(df['POLYGON'])
-    gdf = gpd.GeoDataFrame(df, geometry='coords', crs="EPSG:4326")
+    df['coords'] = df['POLYGON'].apply(ast.literal_eval)
+    df['geometry'] = df['coords'].apply(lambda x: Polygon(x))
+
+    gdf = gpd.GeoDataFrame(df, geometry='geometry', crs="EPSG:4326")
     return gdf
 
 # --- Função para carregar séries temporais ---
