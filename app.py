@@ -25,21 +25,24 @@ st.set_page_config(
 # --- Função para carregar o GeoDataFrame das localidades ---
 @st.cache_data(ttl=3600)
 def load_localidade_geodf(path):
-    df = pd.read_csv(path, sep=',')  # ou ',' se for o caso
+    df = pd.read_csv(path, sep=';')  # ajuste o separador se necessário
 
+    if 'POLYGON' not in df.columns:
+        st.error(f"Coluna 'POLYGON' não encontrada. Colunas disponíveis: {df.columns.tolist()}")
+        return gpd.GeoDataFrame()
+
+    # Converte string WKT -> objetos shapely (Polygon ou MultiPolygon)
     def to_geom(s):
         try:
-            geom = wkt.loads(s)
-            if isinstance(geom, (Polygon, MultiPolygon)):
-                return geom
-            else:
-                raise ValueError(f"Tipo inválido: {geom.geom_type}")
+            return wkt.loads(s)
         except Exception as e:
-            st.error(f"Erro convertendo geometria: {e}")
+            st.error(f"Erro convertendo '{s[:50]}...': {e}")
             return None
 
     df['geometry'] = df['POLYGON'].apply(to_geom)
-    return gpd.GeoDataFrame(df, geometry='geometry', crs="EPSG:4326")
+
+    gdf = gpd.GeoDataFrame(df, geometry='geometry', crs="EPSG:4326")
+    return gdf
 
 # --- Função para carregar séries temporais ---
 @st.cache_data(show_spinner=False, ttl=3600)
