@@ -11,6 +11,12 @@ from pathlib import Path
 st.set_page_config(page_title="Mapa de Reclamações", layout="wide")
 st.title("Mapa de Reclamações por Estado / Município")
 
+if st.button("🏠 Home"):
+    st.switch_page("app.py")
+if st.button("🗺️ Mapa"):
+    st.switch_page("pages/mapa.py")
+
+
 df_filtrado = st.session_state['df_filtrado']
 estado = st.session_state.get('estado', 'Todos')
 
@@ -36,7 +42,7 @@ def load_localidade_geodf(path):
     gdf = gpd.GeoDataFrame(df, geometry='geometry', crs="EPSG:4326")
     return gdf
 
-gdf_estados = load_localidade_geodf("./datasets/gdf_estados.csv")
+#gdf_estados = load_localidade_geodf("./datasets/gdf_estados.csv")
 gdf_municipios_norte = load_localidade_geodf("./datasets/gdf_municipios_norte.csv")
 gdf_municipios_nordeste = load_localidade_geodf("./datasets/gdf_municipios_nordeste.csv")
 gdf_municipios_centro_oeste = load_localidade_geodf("./datasets/gdf_municipios_centro_oeste.csv")
