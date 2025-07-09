@@ -357,7 +357,8 @@ novas_stopwords = ["empresa", "comprei", "loja", "não", "pra", "tive", "minha",
                    , "momento", "Editado", "Editar", "hora", "falar", "pq", "mal", "colocar", "coloquei", "mal", "mau", "bem"
                    , "bom", "ficou", "fiquei", "total", "recebi", "recebeu", "nada", "nenhuma", "nenhum", "nada", "tudo"
                    , "falei", "falaram", "dizer", "dizendo", "dizem", "disseram", "tempo", "coisa", "coisas", "ocorrido"
-                   , "ocorreram"]
+                   , "ocorreram", "simples", "simplesmente", "problemas", "problema", "reclamação", "reclamações", "ver"
+                   , "mim"]
 
 #for palavra in novas_stopwords:
 #    stopwords.append(palavra)
