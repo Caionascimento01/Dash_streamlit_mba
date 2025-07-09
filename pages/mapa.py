@@ -108,15 +108,15 @@ if estado != 'Todos':
     # Agrupando informações dos estados
     df_mapa = df_mapa.groupby(['MUNICIPIO']).size().reset_index(name='Qtd_Reclamacoes')
 
+    # Substituindo valores nulos
+    df_mapa['Qtd_Reclamacoes'] = df_mapa['Qtd_Reclamacoes'].fillna(0).astype(int)
+
     # Unificando com os dados de localização de cada estado
     gdf_final = gdf_municipios.merge(df_mapa, left_on='NM_MUN', right_on='MUNICIPIO', how='left')
 
     cols = ['MUNICIPIO', 'NM_MUN', 'AREA_KM2', 'Qtd_Reclamacoes', 'geometry']
 
     gdf_final = gdf_final[cols]
-
-    # Substituindo valores nulos
-    gdf_final['Qtd_Reclamacoes'] = gdf_final['Qtd_Reclamacoes'].fillna(0).astype(int)
 
     # Simplificando a geometria para melhorar o desempenho do mapa
     gdf_final['geometry'] = gdf_final['geometry'].simplify(0.01, preserve_topology=True)
@@ -154,6 +154,9 @@ else:
     # Agrupando informações dos estados
     df_mapa = df_mapa.groupby(['NOME_UF']).size().reset_index(name='Qtd_Reclamacoes')
 
+    # Substituindo valores nulos
+    df_mapa['Qtd_Reclamacoes'] = df_mapa['Qtd_Reclamacoes'].fillna(0).astype(int)
+
     # Unificando com os dados de localização de cada estado
     gdf_final = gdf_estados.merge(df_mapa, left_on='NM_UF', right_on='NOME_UF', how='left')
 
@@ -166,9 +169,6 @@ else:
 
     # Simplificando a geometria para melhorar o desempenho do mapa
     gdf_final['geometry'] = gdf_final['geometry'].simplify(0.01, preserve_topology=True)
-
-    # Substituindo valores nulos
-    gdf_final['Qtd_Reclamacoes'] = gdf_final['Qtd_Reclamacoes'].fillna(0).astype(int)
 
     # Adicionando as informações no mapa
     choropleth = folium.Choropleth(
