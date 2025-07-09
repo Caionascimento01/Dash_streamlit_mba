@@ -253,8 +253,11 @@ df_tamanho_texto = df_fil.groupby('Tamanho_Texto').size().reset_index(name='Qtd_
 # Metricas gerais
 st.markdown("##### Métricas Gerais")
 col1, col2, col3 = st.columns(3)
-media = df_fil['Tamanho_Texto'].fillna(0).mean()
-tamanho_medio = int(media)
+media = df_fil['Tamanho_Texto'].mean()
+if pd.isna(media):
+    tamanho_medio = 0
+else:
+    tamanho_medio = int(media)
 tamanho_max = int(df_fil['Tamanho_Texto'].fillna(0).max())
 tamanho_min = int(df_fil['Tamanho_Texto'].fillna(0).min())
 
