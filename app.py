@@ -66,11 +66,6 @@ gdf_estados = load_localidade_geodf("./datasets/gdf_estados.csv")
 
 st.session_state['gdf_estados'] = gdf_estados
 
-if st.button("🏠 Home"):
-    st.switch_page("app.py")
-if st.button("🗺️ Mapa"):
-    st.switch_page("pages/mapa.py")
-
 pages = {
     "Home": [
         st.Page("app.py", title="Home page", icon="🏠"),
