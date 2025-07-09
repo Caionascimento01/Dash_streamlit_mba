@@ -109,21 +109,19 @@ mapa = folium.Map(
     zoom_start=4.3
 )
 
+
 if estado != 'Todos':
     df_mapa = df_mapa[df_mapa['NOME_UF'] == estado]
-    gdf_mapa = gdf_mapa[gdf_mapa["NM_UF"] == estado]
+    gdf_municipios = gdf_mapa[gdf_mapa["NM_UF"] == estado]
+
+    # Centralizar o mapa na área de interesse
+    mapa = folium.Map(location=[gdf_municipios.geometry.centroid.y.mean(), gdf_municipios.geometry.centroid.x.mean()], zoom_start=6.3)
 
     # Agrupando informações dos estados
     df_mapa = df_mapa.groupby(['MUNICIPIO']).size().reset_index(name='Qtd_Reclamacoes')
 
     # Unificando com os dados de localização de cada estado
-    gdf_final = gdf_mapa.merge(df_mapa, left_on='NM_MUN', right_on='MUNICIPIO', how='left')
-
-    # Substituindo valores nulos
-    gdf_final['Qtd_Reclamacoes'] = gdf_final['Qtd_Reclamacoes'].fillna(0).astype(int)
-
-    # Simplificando a geometria para melhorar o desempenho do mapa
-    gdf_final['geometry'] = gdf_final['geometry'].simplify(0.01, preserve_topology=True)
+    gdf_final = gdf_municipios.merge(df_mapa, left_on='NM_MUN', right_on='MUNICIPIO', how='left')
 
     # Adicionando as informações no mapa
     choropleth = folium.Choropleth(
@@ -133,7 +131,7 @@ if estado != 'Todos':
         columns=['MUNICIPIO', 'Qtd_Reclamacoes'],
         key_on='feature.properties.NM_MUN', # Chave no GeoJSON para conectar os dados
         fill_color='YlOrRd', # Nome do colormap (escala de cores)
-        nan_fill_color='gray',
+        nan_fill_color='White',
         nan_fill_opacity=0.4,
         fill_opacity=0.7,
         line_opacity=0.2,
@@ -159,13 +157,7 @@ else:
     df_mapa = df_mapa.groupby(['NOME_UF']).size().reset_index(name='Qtd_Reclamacoes')
 
     # Unificando com os dados de localização de cada estado
-    gdf_final = gdf_mapa.merge(df_mapa, left_on='NM_UF', right_on='NOME_UF', how='left')
-
-    # Substituindo valores nulos
-    gdf_final['Qtd_Reclamacoes'] = gdf_final['Qtd_Reclamacoes'].fillna(0).astype(int)
-
-    # Simplificando a geometria para melhorar o desempenho do mapa
-    gdf_final['geometry'] = gdf_final['geometry'].simplify(0.01, preserve_topology=True)
+    gdf_final = gdf_estados.merge(df_mapa, left_on='NM_UF', right_on='NOME_UF', how='left')
 
     # Adicionando as informações no mapa
     choropleth = folium.Choropleth(
@@ -175,12 +167,12 @@ else:
         columns=['NOME_UF', 'Qtd_Reclamacoes'],
         key_on='feature.properties.NM_UF', # Chave no GeoJSON para conectar os dados
         fill_color='YlOrRd', # Nome do colormap (escala de cores)
-        nan_fill_color='gray',
+        nan_fill_color='White',
         nan_fill_opacity=0.4,
         fill_opacity=0.7,
         line_opacity=0.2,
         legend_name='Quantidade de Reclamações',
-        bins=8,
+        bins=[1, 20, 40, 80, 160, 320, 660],
         highlight=True, # Destaca a área ao passar o mouse
     )
 
