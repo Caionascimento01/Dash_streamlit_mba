@@ -25,7 +25,7 @@ st.set_page_config(
 # --- Função para carregar o GeoDataFrame das localidades ---
 @st.cache_data(ttl=3600)
 def load_localidade_geodf(path):
-    df = pd.read_csv(path, sep=';')  # ajuste o separador se necessário
+    df = pd.read_csv(path, sep=',')  # ajuste o separador se necessário
 
     if 'POLYGON' not in df.columns:
         st.error(f"Coluna 'POLYGON' não encontrada. Colunas disponíveis: {df.columns.tolist()}")
