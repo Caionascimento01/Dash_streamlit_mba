@@ -72,19 +72,19 @@ if df_mapa.empty:
 if estado == 'Todos':
     gdf_mapa = gdf_estados.copy()
 else:
-    if estado in ["ACRE", "AMAZONAS", "RORAIMA", "RONDONIA", "TOCANTINS"]:
+    if estado in ["Acre", "Amazonas", "Roraima", "Rondônia", "Tocantins", "Amapá", "Pará"]:
         gdf_municipios_norte = load_localidade_geodf("./datasets/gdf_municipios_norte.csv")
         gdf_mapa = gdf_municipios_norte.copy()
-    elif estado in ["ALAGOAS", "BAHIA", "CEARA", "MARANHAO", "PARAIBA", "PERNAMBUCO", "PIAUI", "RIO GRANDE DO NORTE", "SERGIPE"]:
+    elif estado in ["Alagoas", "Bahia", "Ceará", "Maranhão", "Paraíba", "Pernambuco", "Piauí", "Rio Grande do Norte", "Sergipe"]:
         gdf_municipios_nordeste = load_localidade_geodf("./datasets/gdf_municipios_nordeste.csv")
         gdf_mapa = gdf_municipios_nordeste.copy()
-    elif estado in ["DISTRITO FEDERAL", "GOIAS", "MATO GROSSO", "MATO GROSSO DO SUL"]:
+    elif estado in ["Distrito Federal", "Goiás", "Mato Grosso", "Mato Grosso do Sul"]:
         gdf_municipios_centro_oeste = load_localidade_geodf("./datasets/gdf_municipios_centro_oeste.csv")
         gdf_mapa = gdf_municipios_centro_oeste.copy()
-    elif estado in ["ESPIRITO SANTO", "MINAS GERAIS", "RIO DE JANEIRO", "SAO PAULO"]:
+    elif estado in ["Espírito Santo", "Minas Gerais", "Rio de Janeiro", "São Paulo"]:
         gdf_municipios_sudeste = load_localidade_geodf("./datasets/gdf_municipios_sudeste.csv")
         gdf_mapa = gdf_municipios_sudeste.copy()
-    elif estado in ["PARANA", "RIO GRANDE DO SUL", "SANTA CATARINA"]:
+    elif estado in ["Paraná", "Rio Grande do Sul", "Santa Catarina"]:
         gdf_municipios_sul = load_localidade_geodf("./datasets/gdf_municipios_sul.csv")
         gdf_mapa = gdf_municipios_sul.copy()
     else:
@@ -196,4 +196,4 @@ else:
     tooltip.add_to(choropleth.geojson)
 
     
-st_folium(mapa, width=1000, height=600, returned_objects=[])
+st_folium(mapa, width=1100, height=800, returned_objects=[])
