@@ -7,10 +7,12 @@ from shapely.geometry import Polygon, MultiPolygon
 import folium
 from streamlit_folium import st_folium
 from pathlib import Path
+from folium.plugins import StripePattern
 
-if st.button("🏠 Home"):
+col1, col2 = st.columns([1,1])
+if col1.button("🏠 Home"):
     st.switch_page("app.py")
-if st.button("🗺️ Mapa"):
+if col2.button("🗺️ Mapa"):
     st.switch_page("pages/mapa.py")
 
 
@@ -190,6 +192,14 @@ else:
     )
 
     tooltip.add_to(choropleth.geojson)
+
+    mask = gdf_final['Qtd_Reclamacoes'] == 0
+    gdf_nans = gdf_final[mask]
+    pattern = StripePattern(angle=45, color='grey', space_color='white', weight=2, opacity=0.6)
+    pattern.add_to(mapa)
+    folium.GeoJson(data=gdf_nans, style_function=lambda feature: {
+        'fillPattern': pattern, 'fillOpacity': 1.0, 'color': 'black', 'weight': 1
+    }).add_to(mapa)
 
     
 st_folium(mapa, width=1100, height=800, returned_objects=[])
