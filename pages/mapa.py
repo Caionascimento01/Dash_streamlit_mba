@@ -15,7 +15,7 @@ if st.button("🗺️ Mapa"):
 
 
 st.set_page_config(page_title="Mapa de Reclamações", layout="wide")
-st.title("Mapa de Reclamações por Estado / Município")
+st.title("🗺️ Mapa de calor - Reclamações por Estado / Município")
 
 df_filtrado = st.session_state['df_filtrado']
 gdf_estados = st.session_state.get('gdf_estados')
@@ -42,12 +42,6 @@ def load_localidade_geodf(path):
     gdf = gpd.GeoDataFrame(df, geometry='geometry', crs="EPSG:4326")
     return gdf
 
-#gdf_estados = load_localidade_geodf("./datasets/gdf_estados.csv")
-gdf_municipios_norte = load_localidade_geodf("./datasets/gdf_municipios_norte.csv")
-gdf_municipios_nordeste = load_localidade_geodf("./datasets/gdf_municipios_nordeste.csv")
-gdf_municipios_centro_oeste = load_localidade_geodf("./datasets/gdf_municipios_centro_oeste.csv")
-gdf_municipios_sudeste = load_localidade_geodf("./datasets/gdf_municipios_sudeste.csv")
-gdf_municipios_sul = load_localidade_geodf("./datasets/gdf_municipios_sul.csv")
 
 # Seletor de localidade
 st.sidebar.header("Selecione a localidade")
@@ -67,7 +61,6 @@ else:
 
 # **Mapa do Brasil com heatmap** mostrando a quantidade de reclamações por **ano**, com granularidade por **estado ou município**.
 #  > O mapa **deve conter um seletor para o ano** que será visualizado.
-st.subheader("🗺️ Mapa de calor - Reclamações por Estado / Município")
 st.markdown("Para apresentar as informações por municípios, selecione um estado nos filtros laterais")
 
 # Verifica se o DataFrame df_mapa está vazio
@@ -80,14 +73,19 @@ if estado == 'Todos':
     gdf_mapa = gdf_estados.copy()
 else:
     if estado in ["ACRE", "AMAZONAS", "RORAIMA", "RONDONIA", "TOCANTINS"]:
+        gdf_municipios_norte = load_localidade_geodf("./datasets/gdf_municipios_norte.csv")
         gdf_mapa = gdf_municipios_norte.copy()
     elif estado in ["ALAGOAS", "BAHIA", "CEARA", "MARANHAO", "PARAIBA", "PERNAMBUCO", "PIAUI", "RIO GRANDE DO NORTE", "SERGIPE"]:
+        gdf_municipios_nordeste = load_localidade_geodf("./datasets/gdf_municipios_nordeste.csv")
         gdf_mapa = gdf_municipios_nordeste.copy()
     elif estado in ["DISTRITO FEDERAL", "GOIAS", "MATO GROSSO", "MATO GROSSO DO SUL"]:
+        gdf_municipios_centro_oeste = load_localidade_geodf("./datasets/gdf_municipios_centro_oeste.csv")
         gdf_mapa = gdf_municipios_centro_oeste.copy()
     elif estado in ["ESPIRITO SANTO", "MINAS GERAIS", "RIO DE JANEIRO", "SAO PAULO"]:
+        gdf_municipios_sudeste = load_localidade_geodf("./datasets/gdf_municipios_sudeste.csv")
         gdf_mapa = gdf_municipios_sudeste.copy()
     elif estado in ["PARANA", "RIO GRANDE DO SUL", "SANTA CATARINA"]:
+        gdf_municipios_sul = load_localidade_geodf("./datasets/gdf_municipios_sul.csv")
         gdf_mapa = gdf_municipios_sul.copy()
     else:
         st.error("Estado selecionado não pertence a nenhuma região reconhecida.")
@@ -117,6 +115,13 @@ if estado != 'Todos':
 
     # Unificando com os dados de localização de cada estado
     gdf_final = gdf_municipios.merge(df_mapa, left_on='NM_MUN', right_on='MUNICIPIO', how='left')
+
+    cols = ['NM_MUN', 'AREA_KM2', 'Qtd_Reclamacoes', 'geometry']
+
+    gdf_final = gdf_final[cols]
+
+    # Simplificando a geometria para melhorar o desempenho do mapa
+    gdf_final['geometry'] = gdf_final['geometry'].simplify(0.01, preserve_topology=True)
 
     # Adicionando as informações no mapa
     choropleth = folium.Choropleth(
@@ -154,6 +159,13 @@ else:
     # Unificando com os dados de localização de cada estado
     gdf_final = gdf_estados.merge(df_mapa, left_on='NM_UF', right_on='NOME_UF', how='left')
 
+    cols = ['NM_UF', 'AREA_KM2', 'Qtd_Reclamacoes', 'geometry']
+
+    gdf_final = gdf_final[cols]
+
+    # Simplificando a geometria para melhorar o desempenho do mapa
+    gdf_final['geometry'] = gdf_final['geometry'].simplify(0.01, preserve_topology=True)
+
     # Adicionando as informações no mapa
     choropleth = folium.Choropleth(
         geo_data=gdf_final,
@@ -184,4 +196,4 @@ else:
     tooltip.add_to(choropleth.geojson)
 
     
-st_folium(mapa, width=1000, height=600)
+st_folium(mapa, width=1000, height=600, returned_objects=[])
