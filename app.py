@@ -221,10 +221,10 @@ if estado != 'Todos':
     st.write(f"Total de reclamações em {estado}: {df_ordenado['Qtd_Reclamacoes'].sum()}")
     st.bar_chart(df_ordenado, 
                  horizontal=True,
-                 y_label='Quantidade de Reclamações', 
-                 y='MUNICIPIO', 
                  x_label='Município', 
-                 x='Qtd_Reclamacoes', 
+                 x='MUNICIPIO', 
+                 y_label='Quantidade de Reclamações', 
+                 y='Qtd_Reclamacoes', 
                  use_container_width=True)
 
 else:  
