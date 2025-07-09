@@ -10,7 +10,7 @@ from pathlib import Path
 from folium.plugins import StripePattern
 
 # Adicionando botões de navegação
-col1, col2 = st.columns([1,1])
+col1, col2 = st.columns([1,6])
 if col1.button("🏠 Home"):
     st.switch_page("app.py")
 if col2.button("🗺️ Mapa"):

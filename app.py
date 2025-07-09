@@ -66,7 +66,7 @@ df_reclamacoes = load_series_temporais('./datasets/RECLAMEAQUI_CARREFUOR_CLS.csv
 gdf_estados = load_localidade_geodf("./datasets/gdf_estados.csv")
 
 # Adicionando botões de navegação
-col1, col2 = st.columns([1,4])
+col1, col2 = st.columns([1,6])
 if col1.button("🏠 Home"):
     st.switch_page("app.py")
 if col2.button("🗺️ Mapa"):
