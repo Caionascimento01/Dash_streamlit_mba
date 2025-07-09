@@ -220,10 +220,10 @@ if estado != 'Todos':
     df_ordenado = df_agrupado.sort_values(by='Qtd_Reclamacoes', ascending=True)
     st.write(f"Total de reclamações em {estado}: {df_ordenado['Qtd_Reclamacoes'].sum()}")
     st.bar_chart(df_ordenado, 
-                 horizontal=False,
-                 y_label='Município', 
+                 horizontal=True,
+                 y_label='Quantidade de Reclamações', 
                  y='MUNICIPIO', 
-                 x_label='Quantidade de Reclamações', 
+                 x_label='Município', 
                  x='Qtd_Reclamacoes', 
                  use_container_width=True)
 
