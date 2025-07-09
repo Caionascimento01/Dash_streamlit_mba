@@ -23,7 +23,7 @@ st.set_page_config(
 # --- Função para carregar o GeoDataFrame das localidades ---
 @st.cache_data(ttl=3600)
 def load_localidade_geodf(path):
-    df = pd.read_csv(path, sep=';')
+    df = pd.read_csv(path, sep=',')
 
     # Converte texto -> lista -> shapely.geometry.Polygon
     df['coords'] = df['POLYGON'].apply(ast.literal_eval)
