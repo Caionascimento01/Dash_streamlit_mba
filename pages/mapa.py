@@ -116,7 +116,7 @@ if estado != 'Todos':
     # Unificando com os dados de localização de cada estado
     gdf_final = gdf_municipios.merge(df_mapa, left_on='NM_MUN', right_on='MUNICIPIO', how='left')
 
-    cols = ['NM_MUN', 'AREA_KM2', 'Qtd_Reclamacoes', 'geometry']
+    cols = ['MUNICIPIO', 'NM_MUN', 'AREA_KM2', 'Qtd_Reclamacoes', 'geometry']
 
     gdf_final = gdf_final[cols]
 
