@@ -18,8 +18,6 @@ st.set_page_config(page_title="Mapa de Reclamações", layout="wide")
 st.title("Mapa de Reclamações por Estado / Município")
 
 df_filtrado = st.session_state['df_filtrado']
-estado = st.session_state.get('estado', 'Todos')
-ano = st.session_state.get('ano', 'Todos')
 gdf_estados = st.session_state.get('gdf_estados')
 
 # --- Função para carregar o GeoDataFrame das localidades ---
@@ -57,10 +55,10 @@ opcoes_estados = sorted(gdf_estados['NM_UF'].unique())
 opcoes_completas = ['Todos'] + opcoes_estados
 estado = st.sidebar.selectbox("Estado", options=opcoes_completas)
 
-st.sidebar.header("Selecione a localidade")
+st.sidebar.header("Selecione o ano")
 opcoes_anos = sorted(df_filtrado['ANO'].unique())
 todas_opcoes = ['Todos'] + opcoes_anos
-ano = st.selectbox("Selecione o ano:", options=todas_opcoes)
+ano = st.sidebar.selectbox("Ano", options=todas_opcoes)
 
 if ano != 'Todos':
     df_mapa = df_filtrado[df_filtrado['ANO'] == ano]
