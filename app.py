@@ -25,7 +25,7 @@ st.set_page_config(
 # --- Função para carregar o GeoDataFrame das localidades ---
 @st.cache_data(ttl=3600)
 def load_localidade_geodf(path):
-    df = pd.read_csv(path, sep=';')  # ou ',' se for o caso
+    df = pd.read_csv(path, sep=',')  # ou ',' se for o caso
 
     def to_geom(s):
         try:
