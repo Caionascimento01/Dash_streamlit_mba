@@ -96,13 +96,6 @@ if gdf_mapa.empty:
     st.warning("Nenhuma reclamação encontrada no estado selecionado. Por favor, ajuste os filtros.")
     st.stop()  # Interrompe a execução do restante do código
 
-# Centralizar mapa
-mapa = folium.Map(
-    location=[-14.2350, -51.9253],
-    zoom_start=4.3
-)
-
-
 if estado != 'Todos':
     df_mapa = df_mapa[df_mapa['NOME_UF'] == estado]
     gdf_municipios = gdf_mapa[gdf_mapa["NM_UF"] == estado]
@@ -155,6 +148,9 @@ else:
 
     # Agrupando informações dos estados
     df_mapa = df_mapa.groupby(['NOME_UF']).size().reset_index(name='Qtd_Reclamacoes')
+
+    # Centralizar o mapa na área de interesse
+    mapa = folium.Map(location=[df_mapa.geometry.centroid.y.mean(), df_mapa.geometry.centroid.x.mean()], zoom_start=6.3)
 
     # Unificando com os dados de localização de cada estado
     gdf_final = gdf_estados.merge(df_mapa, left_on='NM_UF', right_on='NOME_UF', how='left')
