@@ -161,14 +161,14 @@ else:
 
     gdf_final = gdf_final[cols]
 
-    # Substituindo valores nulos
-    gdf_final['Qtd_Reclamacoes'] = gdf_final['Qtd_Reclamacoes'].fillna(0).astype(int)
-
     # Centralizar o mapa na área de interesse
     mapa = folium.Map(location=[gdf_final.geometry.centroid.y.mean(), gdf_final.geometry.centroid.x.mean()], zoom_start=4.3)
 
     # Simplificando a geometria para melhorar o desempenho do mapa
     gdf_final['geometry'] = gdf_final['geometry'].simplify(0.01, preserve_topology=True)
+
+    # Substituindo valores nulos
+    gdf_final['Qtd_Reclamacoes'] = gdf_final['Qtd_Reclamacoes'].fillna(0).astype(int)
 
     # Adicionando as informações no mapa
     choropleth = folium.Choropleth(
