@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import geopandas as gpd
 from shapely.geometry import Polygon
+from shapely import wkt
+from shapely.geometry import Polygon, MultiPolygon
 import plotly.express as px
 import folium
 import ast
@@ -23,14 +25,21 @@ st.set_page_config(
 # --- Função para carregar o GeoDataFrame das localidades ---
 @st.cache_data(ttl=3600)
 def load_localidade_geodf(path):
-    df = pd.read_csv(path, sep=',')
+    df = pd.read_csv(path, sep=';')  # ou ',' se for o caso
 
-    # Converte texto -> lista -> shapely.geometry.Polygon
-    df['coords'] = df['POLYGON'].apply(ast.literal_eval)
-    df['geometry'] = df['coords'].apply(lambda x: Polygon(x))
+    def to_geom(s):
+        try:
+            geom = wkt.loads(s)
+            if isinstance(geom, (Polygon, MultiPolygon)):
+                return geom
+            else:
+                raise ValueError(f"Tipo inválido: {geom.geom_type}")
+        except Exception as e:
+            st.error(f"Erro convertendo geometria: {e}")
+            return None
 
-    gdf = gpd.GeoDataFrame(df, geometry='geometry', crs="EPSG:4326")
-    return gdf
+    df['geometry'] = df['POLYGON'].apply(to_geom)
+    return gpd.GeoDataFrame(df, geometry='geometry', crs="EPSG:4326")
 
 # --- Função para carregar séries temporais ---
 @st.cache_data(show_spinner=False, ttl=3600)
