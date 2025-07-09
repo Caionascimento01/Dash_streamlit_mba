@@ -115,6 +115,9 @@ if estado != 'Todos':
 
     gdf_final = gdf_final[cols]
 
+    # Substituindo valores nulos
+    gdf_final['Qtd_Reclamacoes'] = gdf_final['Qtd_Reclamacoes'].fillna(0).astype(int)
+
     # Simplificando a geometria para melhorar o desempenho do mapa
     gdf_final['geometry'] = gdf_final['geometry'].simplify(0.01, preserve_topology=True)
 
@@ -158,6 +161,9 @@ else:
 
     gdf_final = gdf_final[cols]
 
+    # Substituindo valores nulos
+    gdf_final['Qtd_Reclamacoes'] = gdf_final['Qtd_Reclamacoes'].fillna(0).astype(int)
+
     # Centralizar o mapa na área de interesse
     mapa = folium.Map(location=[gdf_final.geometry.centroid.y.mean(), gdf_final.geometry.centroid.x.mean()], zoom_start=4.3)
 
@@ -176,7 +182,6 @@ else:
         nan_fill_opacity=0.4,
         fill_opacity=0.7,
         line_opacity=0.2,
-        StripePattern=StripePattern(angle=45, color='grey', space_color='white', weight=2, opacity=0.6),
         legend_name='Quantidade de Reclamações',
         bins=[1, 20, 40, 80, 160, 320, 660],
         highlight=True, # Destaca a área ao passar o mouse
@@ -193,14 +198,6 @@ else:
     )
 
     tooltip.add_to(choropleth.geojson)
-
-    mask = gdf_final['Qtd_Reclamacoes'] == 0
-    gdf_nans = gdf_final[mask]
-    pattern = StripePattern(angle=45, color='grey', space_color='white', weight=2, opacity=0.6)
-    pattern.add_to(mapa)
-    folium.GeoJson(data=gdf_nans, style_function=lambda feature: {
-        'fillPattern': pattern, 'fillOpacity': 1.0, 'color': 'black', 'weight': 1
-    }).add_to(mapa)
 
     
 st_folium(mapa, width=1100, height=800, returned_objects=[])
