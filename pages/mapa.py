@@ -149,15 +149,15 @@ else:
     # Agrupando informações dos estados
     df_mapa = df_mapa.groupby(['NOME_UF']).size().reset_index(name='Qtd_Reclamacoes')
 
-    # Centralizar o mapa na área de interesse
-    mapa = folium.Map(location=[df_mapa.geometry.centroid.y.mean(), df_mapa.geometry.centroid.x.mean()], zoom_start=6.3)
-
     # Unificando com os dados de localização de cada estado
     gdf_final = gdf_estados.merge(df_mapa, left_on='NM_UF', right_on='NOME_UF', how='left')
 
     cols = ['NOME_UF', 'NM_UF', 'AREA_KM2', 'Qtd_Reclamacoes', 'geometry']
 
     gdf_final = gdf_final[cols]
+
+    # Centralizar o mapa na área de interesse
+    mapa = folium.Map(location=[gdf_final.geometry.centroid.y.mean(), gdf_final.geometry.centroid.x.mean()], zoom_start=6.3)
 
     # Simplificando a geometria para melhorar o desempenho do mapa
     gdf_final['geometry'] = gdf_final['geometry'].simplify(0.01, preserve_topology=True)
