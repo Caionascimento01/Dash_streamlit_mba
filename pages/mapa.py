@@ -21,7 +21,8 @@ st.set_page_config(page_title="Mapa de Reclamações", layout="wide")
 st.title("🗺️ Mapa de calor - Reclamações por Estado / Município")
 
 # Carregar os dados do DataFrame filtrado e do GeoDataFrame dos estados
-df_filtrado = st.session_state['df_filtrado']
+# df_filtrado = st.session_state['df_filtrado']
+df_reclamacoes = st.session_state['df_reclamacoes']
 gdf_estados = st.session_state.get('gdf_estados')
 
 # --- Função para carregar o GeoDataFrame das localidades ---
@@ -57,15 +58,15 @@ estado = st.sidebar.selectbox("Estado", options=opcoes_completas)
 
 # Seletor de ano
 st.sidebar.header("Selecione o ano")
-opcoes_anos = sorted(df_filtrado['ANO'].unique())
+opcoes_anos = sorted(df_reclamacoes['ANO'].unique())
 todas_opcoes = ['Todos'] + opcoes_anos
 ano = st.sidebar.selectbox("Ano", options=todas_opcoes)
 
 # Filtrar o DataFrame com base no ano selecionado
 if ano != 'Todos':
-    df_mapa = df_filtrado[df_filtrado['ANO'] == ano]
+    df_mapa = df_reclamacoes[df_reclamacoes['ANO'] == ano]
 else:
-    df_mapa = df_filtrado.copy()
+    df_mapa = df_reclamacoes.copy()
 
 # **Mapa do Brasil com heatmap** mostrando a quantidade de reclamações por **ano**, com granularidade por **estado ou município**.
 #  > O mapa **deve conter um seletor para o ano** que será visualizado.

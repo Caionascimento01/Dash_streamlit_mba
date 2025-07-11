@@ -70,6 +70,7 @@ col1, col2 = st.columns([1,6])
 if col1.button("🏠 Home"):
     st.switch_page("app.py")
 if col2.button("🗺️ Mapa"):
+    st.session_state['df_reclamacoes'] = df_reclamacoes
     st.switch_page("pages/mapa.py")
 
 # --- Título do Dashboard ----
